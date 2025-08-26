@@ -55,17 +55,37 @@ class Borrowing {
 
     return {
       id: row.id,
-      borrowerId: row.borrower_id,
-      bookId: row.book_id,
-      checkoutDate: new Date(row.checkout_date),
-      dueDate: new Date(row.due_date),
-      returnDate: row.return_date ? new Date(row.return_date) : null,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
-      // Include populated fields if present
+      borrowerId: row.borrowerId || row.borrower_id,
+      bookId: row.bookId || row.book_id,
+      checkoutDate: new Date(row.checkoutDate || row.checkout_date),
+      dueDate: new Date(row.dueDate || row.due_date),
+      returnDate:
+        row.returnDate || row.return_date
+          ? new Date(row.returnDate || row.return_date)
+          : null,
+      createdAt: new Date(row.createdAt || row.created_at),
+      updatedAt: new Date(row.updatedAt || row.updated_at),
+      // Include populated fields if present (Prisma relations)
+      ...(row.book && {
+        book: {
+          id: row.book.id,
+          title: row.book.title,
+          author: row.book.author,
+          isbn: row.book.isbn,
+          shelfLocation: row.book.shelfLocation,
+        },
+      }),
+      ...(row.borrower && {
+        borrower: {
+          id: row.borrower.id,
+          name: row.borrower.name,
+          email: row.borrower.email,
+        },
+      }),
+      // Include populated fields if present (raw SQL joins)
       ...(row.book_title && {
         book: {
-          id: row.book_id,
+          id: row.book_id || row.bookId,
           title: row.book_title,
           author: row.book_author,
           isbn: row.book_isbn,
@@ -74,7 +94,7 @@ class Borrowing {
       }),
       ...(row.borrower_name && {
         borrower: {
-          id: row.borrower_id,
+          id: row.borrower_id || row.borrowerId,
           name: row.borrower_name,
           email: row.borrower_email,
         },
