@@ -36,9 +36,9 @@ class Borrower {
       id: row.id,
       name: row.name,
       email: row.email,
-      registeredDate: new Date(row.registered_date),
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
+      registeredDate: new Date(row.registeredDate || row.registered_date),
+      createdAt: new Date(row.createdAt || row.created_at),
+      updatedAt: new Date(row.updatedAt || row.updated_at),
     };
   }
 

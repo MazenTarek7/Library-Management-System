@@ -55,11 +55,11 @@ class Book {
       title: row.title,
       author: row.author,
       isbn: row.isbn,
-      totalQuantity: row.total_quantity,
-      availableQuantity: row.available_quantity,
-      shelfLocation: row.shelf_location,
-      createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at),
+      totalQuantity: row.totalQuantity || row.total_quantity,
+      availableQuantity: row.availableQuantity || row.available_quantity,
+      shelfLocation: row.shelfLocation || row.shelf_location,
+      createdAt: new Date(row.createdAt || row.created_at),
+      updatedAt: new Date(row.updatedAt || row.updated_at),
     };
   }
 
