@@ -147,6 +147,64 @@ class BorrowingRepository {
   }
 
   /**
+   * Find borrowings by book
+   * @param {number} bookId - Book ID
+   * @param {Object} options - Query options
+   * @param {boolean} [options.activeOnly] - Only return active borrowings (not returned)
+   * @param {number} [options.limit] - Maximum number of results
+   * @param {number} [options.offset] - Number of results to skip
+   * @returns {Promise<Array>} Array of borrowings
+   */
+  static async findByBook(bookId, options = {}) {
+    try {
+      winston.debug("Finding borrowings by book", { bookId, options });
+
+      const where = { bookId };
+
+      if (options.activeOnly) {
+        where.returnDate = null;
+      }
+
+      const queryOptions = {
+        where,
+        include: {
+          book: true,
+          borrower: true,
+        },
+        orderBy: {
+          checkoutDate: "desc",
+        },
+      };
+
+      if (options.limit) {
+        queryOptions.take = options.limit;
+      }
+
+      if (options.offset) {
+        queryOptions.skip = options.offset;
+      }
+
+      const borrowings = await prisma.borrowing.findMany(queryOptions);
+
+      winston.debug("Borrowings retrieved by book", {
+        bookId,
+        count: borrowings.length,
+      });
+
+      return borrowings.map((borrowing) =>
+        Borrowing.fromDatabaseRow(borrowing)
+      );
+    } catch (error) {
+      winston.error("Error finding borrowings by book", {
+        error: error.message,
+        bookId,
+        options,
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Find overdue borrowings
    * @param {Object} options - Query options
    * @param {Date} [options.asOfDate] - Date to check overdue status (defaults to now)

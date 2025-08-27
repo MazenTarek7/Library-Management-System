@@ -23,6 +23,7 @@ class BookController {
         books = await this.bookService.searchBooks({
           title: search,
           author: search,
+          isbn: search,
           limit,
           offset,
         });

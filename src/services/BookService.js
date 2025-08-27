@@ -130,18 +130,11 @@ class BookService {
       }
 
       // Business rule: Check for active borrowings
-      const activeBorrowings = await this.borrowingRepository.findByBorrower(
-        null,
-        {
-          activeOnly: true,
-        }
-      );
+      const activeBorrowings = await this.borrowingRepository.findByBook(id, {
+        activeOnly: true,
+      });
 
-      const hasActiveBorrowings = activeBorrowings.some(
-        (borrowing) => borrowing.bookId === id
-      );
-
-      if (hasActiveBorrowings) {
+      if (activeBorrowings.length > 0) {
         throw new Error("Cannot delete book with active borrowings");
       }
 
