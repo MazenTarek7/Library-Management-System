@@ -87,12 +87,6 @@ The API includes the following endpoints:
 - `GET /api/borrowers/:id/current-books` - Get borrower's current books
 - `GET /api/borrowings/overdue` - Get overdue books
 
-## Health Check
-
-The API includes a health check endpoint:
-
-- `GET /health` - Returns API status and timestamp
-
 ## License
 
 MIT
