@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma");
-const winston = require("winston");
+const logger = require("../config/logger");
 
 /**
  * Database seeding utility for test data using Prisma
@@ -134,9 +134,9 @@ class Seeder {
           create: book,
         });
       }
-      winston.info(`Seeded ${books.length} books`);
+      logger.info(`Seeded ${books.length} books`);
     } catch (error) {
-      winston.error("Error seeding books", { error: error.message });
+      logger.error("Error seeding books", { error: error.message });
       throw error;
     }
   }
@@ -155,9 +155,9 @@ class Seeder {
           create: borrower,
         });
       }
-      winston.info(`Seeded ${borrowers.length} borrowers`);
+      logger.info(`Seeded ${borrowers.length} borrowers`);
     } catch (error) {
-      winston.error("Error seeding borrowers", { error: error.message });
+      logger.error("Error seeding borrowers", { error: error.message });
       throw error;
     }
   }
@@ -177,9 +177,9 @@ class Seeder {
           data: borrowing,
         });
       }
-      winston.info(`Seeded ${borrowings.length} borrowings`);
+      logger.info(`Seeded ${borrowings.length} borrowings`);
     } catch (error) {
-      winston.error("Error seeding borrowings", { error: error.message });
+      logger.error("Error seeding borrowings", { error: error.message });
       throw error;
     }
   }
@@ -189,15 +189,15 @@ class Seeder {
    */
   static async seedAll() {
     try {
-      winston.info("Starting database seeding...");
+      logger.info("Starting database seeding...");
 
       await this.seedBooks();
       await this.seedBorrowers();
       await this.seedBorrowings();
 
-      winston.info("Database seeding completed successfully");
+      logger.info("Database seeding completed successfully");
     } catch (error) {
-      winston.error("Database seeding failed", { error: error.message });
+      logger.error("Database seeding failed", { error: error.message });
       throw error;
     }
   }
@@ -207,16 +207,16 @@ class Seeder {
    */
   static async clearAll() {
     try {
-      winston.info("Clearing all data from tables...");
+      logger.info("Clearing all data from tables...");
 
       // Delete in order to respect foreign key constraints
       await prisma.borrowing.deleteMany({});
       await prisma.borrower.deleteMany({});
       await prisma.book.deleteMany({});
 
-      winston.info("All data cleared successfully");
+      logger.info("All data cleared successfully");
     } catch (error) {
-      winston.error("Error clearing data", { error: error.message });
+      logger.error("Error clearing data", { error: error.message });
       throw error;
     }
   }

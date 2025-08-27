@@ -12,7 +12,10 @@
     "db:setup": "node src/scripts/setupDatabase.js setup",
     "db:test-connection": "node src/scripts/setupDatabase.js test-connection",
     "db:studio": "node src/scripts/setupDatabase.js studio",
-    "db:reset": "node src/scripts/setupDatabase.js reset"
+    "db:reset": "node src/scripts/setupDatabase.js reset",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f api"
   },
   "keywords": [
     "library",

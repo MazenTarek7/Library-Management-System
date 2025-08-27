@@ -1,5 +1,5 @@
 const { Client } = require("pg");
-const winston = require("winston");
+const logger = require("../config/logger");
 
 /**
  * Database creation utility for PostgreSQL
@@ -42,7 +42,7 @@ class DatabaseCreator {
 
     try {
       await client.connect();
-      winston.info(`Connected to PostgreSQL server at ${host}:${port}`);
+      logger.info(`Connected to PostgreSQL server at ${host}:${port}`);
 
       // Check if database exists
       const checkResult = await client.query(
@@ -52,16 +52,16 @@ class DatabaseCreator {
 
       if (checkResult.rows.length === 0) {
         // Database doesn't exist, create it
-        winston.info(`Creating database: ${database}`);
+        logger.info(`Creating database: ${database}`);
         await client.query(`CREATE DATABASE "${database}"`);
-        winston.info(`Database "${database}" created successfully`);
+        logger.info(`Database "${database}" created successfully`);
       } else {
-        winston.info(`Database "${database}" already exists`);
+        logger.info(`Database "${database}" already exists`);
       }
 
       return true;
     } catch (error) {
-      winston.error("Error creating database", {
+      logger.error("Error creating database", {
         error: error.message,
         database,
         host,
@@ -96,7 +96,7 @@ class DatabaseCreator {
     try {
       await client.connect();
       const result = await client.query("SELECT version()");
-      winston.info("PostgreSQL server connection successful", {
+      logger.info("PostgreSQL server connection successful", {
         version:
           result.rows[0].version.split(" ")[0] +
           " " +
@@ -106,7 +106,7 @@ class DatabaseCreator {
       });
       return true;
     } catch (error) {
-      winston.error("PostgreSQL server connection failed", {
+      logger.error("PostgreSQL server connection failed", {
         error: error.message,
         host,
         port,
@@ -151,13 +151,13 @@ class DatabaseCreator {
       );
 
       // Drop the database
-      winston.warn(`Dropping database: ${database}`);
+      logger.warn(`Dropping database: ${database}`);
       await client.query(`DROP DATABASE IF EXISTS "${database}"`);
-      winston.info(`Database "${database}" dropped successfully`);
+      logger.info(`Database "${database}" dropped successfully`);
 
       return true;
     } catch (error) {
-      winston.error("Error dropping database", {
+      logger.error("Error dropping database", {
         error: error.message,
         database,
       });

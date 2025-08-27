@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma");
-const winston = require("winston");
+const logger = require("../config/logger");
 
 /**
  * Database utility class using Prisma ORM
@@ -12,10 +12,10 @@ class DatabaseUtil {
   static async testConnection() {
     try {
       await prisma.$queryRaw`SELECT NOW()`;
-      winston.info("Database connection test successful");
+      logger.info("Database connection test successful");
       return true;
     } catch (error) {
-      winston.error("Database connection test failed", {
+      logger.error("Database connection test failed", {
         error: error.message,
       });
       return false;
@@ -31,10 +31,10 @@ class DatabaseUtil {
   static async rawQuery(query, ...params) {
     try {
       const result = await prisma.$queryRaw(query, ...params);
-      winston.debug("Executed raw query", { query: query.toString() });
+      logger.debug("Executed raw query", { query: query.toString() });
       return result;
     } catch (error) {
-      winston.error("Raw query error", {
+      logger.error("Raw query error", {
         query: query.toString(),
         error: error.message,
       });
@@ -49,12 +49,12 @@ class DatabaseUtil {
    */
   static async transaction(callback) {
     try {
-      winston.debug("Transaction started");
+      logger.debug("Transaction started");
       const result = await prisma.$transaction(callback);
-      winston.debug("Transaction committed");
+      logger.debug("Transaction committed");
       return result;
     } catch (error) {
-      winston.error("Transaction rolled back", { error: error.message });
+      logger.error("Transaction rolled back", { error: error.message });
       throw error;
     }
   }
@@ -74,7 +74,7 @@ class DatabaseUtil {
       `;
       return result[0];
     } catch (error) {
-      winston.error("Error getting connection info", { error: error.message });
+      logger.error("Error getting connection info", { error: error.message });
       throw error;
     }
   }
@@ -86,9 +86,9 @@ class DatabaseUtil {
   static async disconnect() {
     try {
       await prisma.$disconnect();
-      winston.info("Prisma client disconnected");
+      logger.info("Prisma client disconnected");
     } catch (error) {
-      winston.error("Error disconnecting Prisma client", {
+      logger.error("Error disconnecting Prisma client", {
         error: error.message,
       });
       throw error;

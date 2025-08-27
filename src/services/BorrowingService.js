@@ -1,4 +1,4 @@
-const winston = require("winston");
+const logger = require("../config/logger");
 const BookRepository = require("../repositories/BookRepository");
 const BorrowerRepository = require("../repositories/BorrowerRepository");
 const BorrowingRepository = require("../repositories/BorrowingRepository");
@@ -26,7 +26,7 @@ class BorrowingService {
    */
   async checkoutBook(borrowerId, bookId) {
     try {
-      winston.debug("BorrowingService: Checking out book", {
+      logger.debug("BorrowingService: Checking out book", {
         borrowerId,
         bookId,
       });

@@ -3,7 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const { bookRoutes, borrowerRoutes, borrowingRoutes } = require("./routes");
 const { ErrorHandlerMiddleware } = require("./middleware");
-require("dotenv").config();
+const { environment, logger } = require("./config");
 
 const app = express();
 
@@ -39,7 +39,7 @@ app.use("*", (req, res) => {
 
 app.use(ErrorHandlerMiddleware.handle);
 
-const PORT = process.env.PORT || 3000;
+const PORT = environment.port;
 let server;
 
 function gracefulShutdown(signal) {

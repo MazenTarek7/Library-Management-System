@@ -1,4 +1,4 @@
-const winston = require("winston");
+const logger = require("../config/logger");
 const BorrowerService = require("../services/BorrowerService");
 
 class BorrowerController {
@@ -11,7 +11,7 @@ class BorrowerController {
    */
   async getAllBorrowers(req, res, next) {
     try {
-      winston.debug("BorrowerController: Getting all borrowers", {
+      logger.debug("BorrowerController: Getting all borrowers", {
         query: req.query,
       });
 
@@ -22,7 +22,7 @@ class BorrowerController {
         offset,
       });
 
-      winston.info("BorrowerController: Borrowers retrieved successfully", {
+      logger.info("BorrowerController: Borrowers retrieved successfully", {
         count: borrowers.length,
       });
 
@@ -37,7 +37,7 @@ class BorrowerController {
         },
       });
     } catch (error) {
-      winston.error("BorrowerController: Error getting all borrowers", {
+      logger.error("BorrowerController: Error getting all borrowers", {
         error: error.message,
         query: req.query,
       });
@@ -52,12 +52,12 @@ class BorrowerController {
     try {
       const { id } = req.params;
 
-      winston.debug("BorrowerController: Getting borrower by ID", { id });
+      logger.debug("BorrowerController: Getting borrower by ID", { id });
 
       const borrower = await this.borrowerService.getBorrowerById(parseInt(id));
 
       if (!borrower) {
-        winston.info("BorrowerController: Borrower not found", { id });
+        logger.info("BorrowerController: Borrower not found", { id });
         return res.status(404).json({
           error: {
             code: "BORROWER_NOT_FOUND",
@@ -66,7 +66,7 @@ class BorrowerController {
         });
       }
 
-      winston.info("BorrowerController: Borrower retrieved successfully", {
+      logger.info("BorrowerController: Borrower retrieved successfully", {
         borrowerId: id,
         name: borrower.name,
       });
@@ -75,7 +75,7 @@ class BorrowerController {
         data: borrower,
       });
     } catch (error) {
-      winston.error("BorrowerController: Error getting borrower by ID", {
+      logger.error("BorrowerController: Error getting borrower by ID", {
         error: error.message,
         id: req.params.id,
       });
@@ -88,7 +88,7 @@ class BorrowerController {
    */
   async createBorrower(req, res, next) {
     try {
-      winston.debug("BorrowerController: Creating new borrower", {
+      logger.debug("BorrowerController: Creating new borrower", {
         borrowerData: req.body,
       });
 
@@ -96,7 +96,7 @@ class BorrowerController {
         req.body
       );
 
-      winston.info("BorrowerController: Borrower created successfully", {
+      logger.info("BorrowerController: Borrower created successfully", {
         borrowerId: createdBorrower.id,
         email: createdBorrower.email,
       });
@@ -105,7 +105,7 @@ class BorrowerController {
         data: createdBorrower,
       });
     } catch (error) {
-      winston.error("BorrowerController: Error creating borrower", {
+      logger.error("BorrowerController: Error creating borrower", {
         error: error.message,
         borrowerData: req.body,
       });
@@ -148,7 +148,7 @@ class BorrowerController {
     try {
       const { id } = req.params;
 
-      winston.debug("BorrowerController: Updating borrower", {
+      logger.debug("BorrowerController: Updating borrower", {
         id,
         updateData: req.body,
       });
@@ -158,7 +158,7 @@ class BorrowerController {
         req.body
       );
 
-      winston.info("BorrowerController: Borrower updated successfully", {
+      logger.info("BorrowerController: Borrower updated successfully", {
         borrowerId: id,
         updatedFields: Object.keys(req.body),
       });
@@ -167,7 +167,7 @@ class BorrowerController {
         data: updatedBorrower,
       });
     } catch (error) {
-      winston.error("BorrowerController: Error updating borrower", {
+      logger.error("BorrowerController: Error updating borrower", {
         error: error.message,
         id: req.params.id,
         updateData: req.body,
@@ -220,12 +220,12 @@ class BorrowerController {
     try {
       const { id } = req.params;
 
-      winston.debug("BorrowerController: Deleting borrower", { id });
+      logger.debug("BorrowerController: Deleting borrower", { id });
 
       const deleted = await this.borrowerService.deleteBorrower(parseInt(id));
 
       if (!deleted) {
-        winston.info("BorrowerController: Borrower not found for deletion", {
+        logger.info("BorrowerController: Borrower not found for deletion", {
           id,
         });
         return res.status(404).json({
@@ -236,13 +236,13 @@ class BorrowerController {
         });
       }
 
-      winston.info("BorrowerController: Borrower deleted successfully", {
+      logger.info("BorrowerController: Borrower deleted successfully", {
         borrowerId: id,
       });
 
       res.status(204).send();
     } catch (error) {
-      winston.error("BorrowerController: Error deleting borrower", {
+      logger.error("BorrowerController: Error deleting borrower", {
         error: error.message,
         id: req.params.id,
       });

@@ -1,4 +1,4 @@
-const winston = require("winston");
+const logger = require("../config/logger");
 const BorrowingService = require("../services/BorrowingService");
 
 class BorrowingController {
@@ -11,7 +11,7 @@ class BorrowingController {
    */
   async checkoutBook(req, res, next) {
     try {
-      winston.debug("BorrowingController: Checking out book", {
+      logger.debug("BorrowingController: Checking out book", {
         requestBody: req.body,
       });
 
@@ -22,7 +22,7 @@ class BorrowingController {
         bookId
       );
 
-      winston.info("BorrowingController: Book checked out successfully", {
+      logger.info("BorrowingController: Book checked out successfully", {
         borrowingId: borrowing.id,
         borrowerId,
         bookId,
@@ -33,7 +33,7 @@ class BorrowingController {
         data: borrowing,
       });
     } catch (error) {
-      winston.error("BorrowingController: Error checking out book", {
+      logger.error("BorrowingController: Error checking out book", {
         error: error.message,
         requestBody: req.body,
       });
@@ -85,13 +85,13 @@ class BorrowingController {
     try {
       const { id } = req.params;
 
-      winston.debug("BorrowingController: Returning book", {
+      logger.debug("BorrowingController: Returning book", {
         borrowingId: id,
       });
 
       const borrowing = await this.borrowingService.returnBook(parseInt(id));
 
-      winston.info("BorrowingController: Book returned successfully", {
+      logger.info("BorrowingController: Book returned successfully", {
         borrowingId: id,
         bookId: borrowing.bookId,
         borrowerId: borrowing.borrowerId,
@@ -102,7 +102,7 @@ class BorrowingController {
         data: borrowing,
       });
     } catch (error) {
-      winston.error("BorrowingController: Error returning book", {
+      logger.error("BorrowingController: Error returning book", {
         error: error.message,
         borrowingId: req.params.id,
       });
@@ -146,7 +146,7 @@ class BorrowingController {
     try {
       const { id } = req.params;
 
-      winston.debug("BorrowingController: Getting borrower current books", {
+      logger.debug("BorrowingController: Getting borrower current books", {
         borrowerId: id,
       });
 
@@ -154,7 +154,7 @@ class BorrowingController {
         parseInt(id)
       );
 
-      winston.info(
+      logger.info(
         "BorrowingController: Borrower current books retrieved successfully",
         {
           borrowerId: id,
@@ -170,7 +170,7 @@ class BorrowingController {
         },
       });
     } catch (error) {
-      winston.error(
+      logger.error(
         "BorrowingController: Error getting borrower current books",
         {
           error: error.message,
@@ -206,7 +206,7 @@ class BorrowingController {
    */
   async getOverdueBooks(req, res, next) {
     try {
-      winston.debug("BorrowingController: Getting overdue books", {
+      logger.debug("BorrowingController: Getting overdue books", {
         query: req.query,
       });
 
@@ -217,12 +217,9 @@ class BorrowingController {
         offset: offset ? parseInt(offset) : undefined,
       });
 
-      winston.info(
-        "BorrowingController: Overdue books retrieved successfully",
-        {
-          count: overdueBooks.length,
-        }
-      );
+      logger.info("BorrowingController: Overdue books retrieved successfully", {
+        count: overdueBooks.length,
+      });
 
       res.status(200).json({
         data: overdueBooks,
@@ -235,7 +232,7 @@ class BorrowingController {
         },
       });
     } catch (error) {
-      winston.error("BorrowingController: Error getting overdue books", {
+      logger.error("BorrowingController: Error getting overdue books", {
         error: error.message,
         query: req.query,
       });
