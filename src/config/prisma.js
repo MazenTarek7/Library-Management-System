@@ -1,5 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
-const winston = require("winston");
+const logger = require("./logger");
 
 // Create Prisma client instance with logging configuration
 const prisma = new PrismaClient({
@@ -25,7 +25,7 @@ const prisma = new PrismaClient({
 
 // Set up event listeners for logging
 prisma.$on("query", (e) => {
-  winston.debug("Prisma Query", {
+  logger.debug("Prisma Query", {
     query: e.query,
     params: e.params,
     duration: `${e.duration}ms`,
@@ -34,21 +34,21 @@ prisma.$on("query", (e) => {
 });
 
 prisma.$on("error", (e) => {
-  winston.error("Prisma Error", {
+  logger.error("Prisma Error", {
     message: e.message,
     target: e.target,
   });
 });
 
 prisma.$on("info", (e) => {
-  winston.info("Prisma Info", {
+  logger.info("Prisma Info", {
     message: e.message,
     target: e.target,
   });
 });
 
 prisma.$on("warn", (e) => {
-  winston.warn("Prisma Warning", {
+  logger.warn("Prisma Warning", {
     message: e.message,
     target: e.target,
   });
@@ -56,7 +56,7 @@ prisma.$on("warn", (e) => {
 
 // Graceful shutdown
 process.on("beforeExit", async () => {
-  winston.info("Disconnecting Prisma client...");
+  logger.info("Disconnecting Prisma client...");
   await prisma.$disconnect();
 });
 

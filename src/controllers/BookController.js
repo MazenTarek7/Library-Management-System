@@ -1,4 +1,4 @@
-const winston = require("winston");
+const logger = require("../config/logger");
 const BookService = require("../services/BookService");
 
 class BookController {
@@ -11,7 +11,7 @@ class BookController {
    */
   async getAllBooks(req, res, next) {
     try {
-      winston.debug("BookController: Getting all books", {
+      logger.debug("BookController: Getting all books", {
         query: req.query,
       });
 
@@ -33,7 +33,7 @@ class BookController {
         });
       }
 
-      winston.info("BookController: Books retrieved successfully", {
+      logger.info("BookController: Books retrieved successfully", {
         count: books.length,
         hasSearch: !!search,
       });
@@ -49,7 +49,7 @@ class BookController {
         },
       });
     } catch (error) {
-      winston.error("BookController: Error getting all books", {
+      logger.error("BookController: Error getting all books", {
         error: error.message,
         query: req.query,
       });
@@ -64,12 +64,12 @@ class BookController {
     try {
       const { id } = req.params;
 
-      winston.debug("BookController: Getting book by ID", { id });
+      logger.debug("BookController: Getting book by ID", { id });
 
       const book = await this.bookService.getBookById(parseInt(id));
 
       if (!book) {
-        winston.info("BookController: Book not found", { id });
+        logger.info("BookController: Book not found", { id });
         return res.status(404).json({
           error: {
             code: "BOOK_NOT_FOUND",
@@ -78,7 +78,7 @@ class BookController {
         });
       }
 
-      winston.info("BookController: Book retrieved successfully", {
+      logger.info("BookController: Book retrieved successfully", {
         bookId: id,
         title: book.title,
       });
@@ -87,7 +87,7 @@ class BookController {
         data: book,
       });
     } catch (error) {
-      winston.error("BookController: Error getting book by ID", {
+      logger.error("BookController: Error getting book by ID", {
         error: error.message,
         id: req.params.id,
       });
@@ -100,13 +100,13 @@ class BookController {
    */
   async createBook(req, res, next) {
     try {
-      winston.debug("BookController: Creating new book", {
+      logger.debug("BookController: Creating new book", {
         bookData: req.body,
       });
 
       const createdBook = await this.bookService.createBook(req.body);
 
-      winston.info("BookController: Book created successfully", {
+      logger.info("BookController: Book created successfully", {
         bookId: createdBook.id,
         title: createdBook.title,
       });
@@ -115,7 +115,7 @@ class BookController {
         data: createdBook,
       });
     } catch (error) {
-      winston.error("BookController: Error creating book", {
+      logger.error("BookController: Error creating book", {
         error: error.message,
         bookData: req.body,
       });
@@ -162,7 +162,7 @@ class BookController {
     try {
       const { id } = req.params;
 
-      winston.debug("BookController: Updating book", {
+      logger.debug("BookController: Updating book", {
         id,
         updateData: req.body,
       });
@@ -172,7 +172,7 @@ class BookController {
         req.body
       );
 
-      winston.info("BookController: Book updated successfully", {
+      logger.info("BookController: Book updated successfully", {
         bookId: id,
         updatedFields: Object.keys(req.body),
       });
@@ -181,7 +181,7 @@ class BookController {
         data: updatedBook,
       });
     } catch (error) {
-      winston.error("BookController: Error updating book", {
+      logger.error("BookController: Error updating book", {
         error: error.message,
         id: req.params.id,
         updateData: req.body,
@@ -238,12 +238,12 @@ class BookController {
     try {
       const { id } = req.params;
 
-      winston.debug("BookController: Deleting book", { id });
+      logger.debug("BookController: Deleting book", { id });
 
       const deleted = await this.bookService.deleteBook(parseInt(id));
 
       if (!deleted) {
-        winston.info("BookController: Book not found for deletion", { id });
+        logger.info("BookController: Book not found for deletion", { id });
         return res.status(404).json({
           error: {
             code: "BOOK_NOT_FOUND",
@@ -252,13 +252,13 @@ class BookController {
         });
       }
 
-      winston.info("BookController: Book deleted successfully", {
+      logger.info("BookController: Book deleted successfully", {
         bookId: id,
       });
 
       res.status(204).send();
     } catch (error) {
-      winston.error("BookController: Error deleting book", {
+      logger.error("BookController: Error deleting book", {
         error: error.message,
         id: req.params.id,
       });
