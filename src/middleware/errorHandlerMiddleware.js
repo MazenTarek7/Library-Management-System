@@ -103,6 +103,11 @@ class ErrorHandlerMiddleware {
 
     if (err.name === "ValidationError" || err.code === "VALIDATION_ERROR") {
       error = ErrorHandlerMiddleware._handleValidationError(err);
+    } else if (
+      err.type === "entity.parse.failed" ||
+      err.name === "SyntaxError"
+    ) {
+      error = ErrorHandlerMiddleware._handleJsonParseError(err);
     } else if (err.name === "CastError" || err.code === "22P02") {
       error = ErrorHandlerMiddleware._handleCastError(err);
     } else if (err.code === "23505") {
@@ -155,6 +160,19 @@ class ErrorHandlerMiddleware {
       code: "VALIDATION_ERROR",
       message: "Invalid input data",
       details: err.details || [],
+    };
+  }
+
+  /**
+   * Handle JSON parsing errors
+   * @param {Error} err - Original error
+   * @returns {Object} Formatted error
+   */
+  static _handleJsonParseError(err) {
+    return {
+      statusCode: 400,
+      code: "INVALID_JSON",
+      message: "Invalid JSON format in request body",
     };
   }
 
