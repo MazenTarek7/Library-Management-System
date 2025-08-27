@@ -17,10 +17,11 @@ model Book {
   shelfLocation     String      @map("shelf_location") @db.VarChar(50)
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
-  
-  // Relations
   borrowings        Borrowing[]
 
+  @@index([title])
+  @@index([author])
+  @@index([title, author])
   @@map("books")
 }
 
@@ -31,8 +32,6 @@ model Borrower {
   registeredDate DateTime    @default(now()) @map("registered_date") @db.Date
   createdAt      DateTime    @default(now()) @map("created_at")
   updatedAt      DateTime    @updatedAt @map("updated_at")
-  
-  // Relations
   borrowings     Borrowing[]
 
   @@map("borrowers")
@@ -47,10 +46,8 @@ model Borrowing {
   returnDate   DateTime? @map("return_date") @db.Date
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
-  
-  // Relations
-  borrower     Borrower  @relation(fields: [borrowerId], references: [id])
   book         Book      @relation(fields: [bookId], references: [id])
+  borrower     Borrower  @relation(fields: [borrowerId], references: [id])
 
   @@map("borrowings")
 }

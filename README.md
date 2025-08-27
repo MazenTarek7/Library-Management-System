@@ -9,66 +9,61 @@ A RESTful API for library management built with Node.js, Express.js, and Postgre
 - Book checkout and return tracking
 - Overdue book monitoring
 - RESTful API design with proper error handling
+- Docker support
 
-## Prerequisites
+## Quick Start
 
-- Node.js (v18 or higher)
-- PostgreSQL (v14 or higher)
-- npm or yarn
+### Option 1: Docker (Recommended for Development)
 
-## Installation
+```bash
+npm run docker:up
 
-### Local Development
+# Setup database schema and seed data
+npm run db:setup
 
-1. Clone the repository
-2. Install dependencies:
+# Access the API at http://localhost:3000
+```
 
-   ```bash
-   npm install
-   ```
+### Option 2: Local Development
 
-3. Copy environment configuration:
+```bash
+# Install dependencies
+npm install
 
-   ```bash
-   cp .env.example .env
-   ```
+# Copy and configure environment
+cp .env.example .env
 
-4. Update the `.env` file with your database configuration
+# Setup database
+npm run db:setup
 
-### Docker Development (Recommended)
+# Start development server
+npm run dev
+```
 
-1. Clone the repository
-2. Start the development environment:
+## Documentation
 
-   ```bash
-   npm run docker:up
-   ```
-
-3. Setup the database:
-
-   ```bash
-   npm run db:setup
-   ```
-
-4. The API will be available at `http://localhost:3000`
+- **[Docker Setup](docker-README.md)** - Complete Docker configuration and usage
+- **[Database Setup](docs/database-setup.md)** - Database configuration, schema, and management
+- **[API Documentation](docs/api-documentation.md)** - Detailed API endpoints with examples
 
 ## Available Scripts
 
-### Development Scripts
+### Development
 
-- `npm start` - Start the production server
-- `npm run dev` - Start the development server with nodemon
-- `npm test` - Run tests
+- `npm start` - Start production server
+- `npm run dev` - Start development server with nodemon
+- `npm test` - Run test suite
 - `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Run tests with coverage report
+- `npm run test:coverage` - Generate coverage report
 
-### Database Scripts
+### Database
 
 - `npm run db:setup` - Setup database schema and seed data
 - `npm run db:test-connection` - Test database connection
 - `npm run db:reset` - Reset database
+- `npm run db:studio` - Open Prisma Studio
 
-### Docker Scripts
+### Docker
 
 - `npm run docker:up` - Start development environment
 - `npm run docker:down` - Stop development environment
@@ -81,7 +76,7 @@ src/
 ├── app.js              # Express application setup
 ├── config/             # Configuration files
 ├── middleware/         # Custom middleware
-├── models/             # Data models
+├── models/             # Data models and validation
 ├── repositories/       # Data access layer
 ├── routes/             # API route definitions
 ├── services/           # Business logic layer
@@ -93,36 +88,15 @@ tests/
 └── setup.js           # Test configuration
 ```
 
-## API Endpoints
+## API Overview
 
-The API includes the following endpoints:
+The API provides endpoints for:
 
-### Books
+- **Books**: CRUD operations for book inventory
+- **Borrowers**: User registration and management
+- **Borrowings**: Checkout/return operations and overdue tracking
 
-- `GET /api/books` - List all books
-- `GET /api/books/:id` - Get book by ID
-- `POST /api/books` - Create new book
-- `PUT /api/books/:id` - Update book
-- `DELETE /api/books/:id` - Delete book
-
-### Borrowers
-
-- `GET /api/borrowers` - List all borrowers
-- `GET /api/borrowers/:id` - Get borrower by ID
-- `POST /api/borrowers` - Register new borrower
-- `PUT /api/borrowers/:id` - Update borrower
-- `DELETE /api/borrowers/:id` - Delete borrower
-
-### Borrowings
-
-- `POST /api/borrowings/checkout` - Check out a book
-- `PUT /api/borrowings/:id/return` - Return a book
-- `GET /api/borrowers/:id/current-books` - Get borrower's current books
-- `GET /api/borrowings/overdue` - Get overdue books
-
-## Docker Support
-
-Docker is setup to run the application for more details check [docker-README.md](docker-README.md).
+For detailed API documentation with examples, check [API Documentation](docs/api-documentation.md).
 
 ## License
 
