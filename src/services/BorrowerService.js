@@ -1,4 +1,4 @@
-const winston = require("winston");
+const logger = require("../config/logger");
 const BorrowerRepository = require("../repositories/BorrowerRepository");
 const BorrowingRepository = require("../repositories/BorrowingRepository");
 
