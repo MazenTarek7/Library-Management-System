@@ -239,6 +239,127 @@ class BorrowingController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/borrowings/exports/last-month.csv - All borrowings in last month as CSV
+   */
+  async exportBorrowingsLastMonthCSV(req, res, next) {
+    try {
+      logger.debug(
+        "BorrowingController: Exporting all borrowings of last month to CSV"
+      );
+
+      const items = await this.borrowingService.getBorrowingsOfLastMonth();
+
+      const rows = items.map((b) => ({
+        id: b.id,
+        borrowerId: b.borrowerId,
+        borrowerName: b.borrower?.name,
+        borrowerEmail: b.borrower?.email,
+        bookId: b.bookId,
+        bookTitle: b.book?.title,
+        bookAuthor: b.book?.author,
+        isbn: b.book?.isbn,
+        checkoutDate: b.checkoutDate,
+        dueDate: b.dueDate,
+        returnDate: b.returnDate,
+      }));
+
+      const { toCSV } = require("../utils/csv");
+      const csv = toCSV(rows, [
+        "id",
+        "borrowerId",
+        "borrowerName",
+        "borrowerEmail",
+        "bookId",
+        "bookTitle",
+        "bookAuthor",
+        "isbn",
+        "checkoutDate",
+        "dueDate",
+        "returnDate",
+      ]);
+
+      const { start, end } = BorrowingService.getLastMonthRange();
+      const filename = `borrowings_${start.toISOString().slice(0, 10)}_${end
+        .toISOString()
+        .slice(0, 10)}.csv`;
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=\"${filename}\"`
+      );
+      res.status(200).send(csv);
+    } catch (error) {
+      logger.error(
+        "BorrowingController: Error exporting last month's borrowings",
+        { error: error.message }
+      );
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/borrowings/exports/overdue-last-month.csv - Overdue borrowings of last month as CSV
+   */
+  async exportOverdueLastMonthCSV(req, res, next) {
+    try {
+      logger.debug(
+        "BorrowingController: Exporting overdue borrowings of last month to CSV"
+      );
+
+      const items =
+        await this.borrowingService.getOverdueBorrowingsOfLastMonth();
+
+      const rows = items.map((b) => ({
+        id: b.id,
+        borrowerId: b.borrowerId,
+        borrowerName: b.borrower?.name,
+        borrowerEmail: b.borrower?.email,
+        bookId: b.bookId,
+        bookTitle: b.book?.title,
+        bookAuthor: b.book?.author,
+        isbn: b.book?.isbn,
+        checkoutDate: b.checkoutDate,
+        dueDate: b.dueDate,
+        daysOverdue: b.daysOverdue ?? undefined,
+      }));
+
+      const { toCSV } = require("../utils/csv");
+      const csv = toCSV(rows, [
+        "id",
+        "borrowerId",
+        "borrowerName",
+        "borrowerEmail",
+        "bookId",
+        "bookTitle",
+        "bookAuthor",
+        "isbn",
+        "checkoutDate",
+        "dueDate",
+        "daysOverdue",
+      ]);
+
+      const { start, end } = BorrowingService.getLastMonthRange();
+      const filename = `overdue_${start.toISOString().slice(0, 10)}_${end
+        .toISOString()
+        .slice(0, 10)}.csv`;
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=\"${filename}\"`
+      );
+      res.status(200).send(csv);
+    } catch (error) {
+      logger.error(
+        "BorrowingController: Error exporting last month's overdue borrowings",
+        { error: error.message }
+      );
+      next(error);
+    }
+  }
 }
 
 module.exports = BorrowingController;
