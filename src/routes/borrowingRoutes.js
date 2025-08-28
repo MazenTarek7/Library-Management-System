@@ -39,4 +39,18 @@ router.get(
   (req, res, next) => borrowingController.getOverdueBooks(req, res, next)
 );
 
+/**
+ * GET /api/borrowings/exports/last-month - Export all borrowings of last month as CSV
+ */
+router.get("/exports/last-month", (req, res, next) =>
+  borrowingController.exportBorrowingsLastMonthCSV(req, res, next)
+);
+
+/**
+ * GET /api/borrowings/exports/overdue-last-month - Export overdue borrowings of last month as CSV
+ */
+router.get("/exports/overdue-last-month", (req, res, next) =>
+  borrowingController.exportOverdueLastMonthCSV(req, res, next)
+);
+
 module.exports = router;
