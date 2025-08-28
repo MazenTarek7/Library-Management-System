@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma");
-const winston = require("winston");
+const logger = require("../config/logger");
 const Borrower = require("../models/Borrower");
 
 /**
@@ -15,7 +15,7 @@ class BorrowerRepository {
    */
   static async create(borrowerData) {
     try {
-      winston.debug("Creating new borrower", { borrowerData });
+      logger.debug("Creating new borrower", { borrowerData });
 
       const normalizedEmail = Borrower.normalizeEmail(borrowerData.email);
 
@@ -30,16 +30,16 @@ class BorrowerRepository {
         },
       });
 
-      winston.info("Borrower created successfully", {
+      logger.info("Borrower created successfully", {
         borrowerId: createdBorrower.id,
       });
       return Borrower.fromDatabaseRow(createdBorrower);
     } catch (error) {
       if (error.code === "P2002" && error.meta?.target?.includes("email")) {
-        winston.warn("Email already exists", { email: borrowerData.email });
+        logger.warn("Email already exists", { email: borrowerData.email });
         throw new Error("Email already exists");
       }
-      winston.error("Error creating borrower", {
+      logger.error("Error creating borrower", {
         error: error.message,
         borrowerData,
       });
@@ -55,7 +55,7 @@ class BorrowerRepository {
    */
   static async update(id, updateData) {
     try {
-      winston.debug("Updating borrower", { id, updateData });
+      logger.debug("Updating borrower", { id, updateData });
 
       const updateFields = {};
 
@@ -73,18 +73,18 @@ class BorrowerRepository {
         data: updateFields,
       });
 
-      winston.info("Borrower updated successfully", { borrowerId: id });
+      logger.info("Borrower updated successfully", { borrowerId: id });
       return Borrower.fromDatabaseRow(updatedBorrower);
     } catch (error) {
       if (error.code === "P2025") {
-        winston.warn("Borrower not found for update", { id });
+        logger.warn("Borrower not found for update", { id });
         return null;
       }
       if (error.code === "P2002" && error.meta?.target?.includes("email")) {
-        winston.warn("Email already exists", { email: updateData.email });
+        logger.warn("Email already exists", { email: updateData.email });
         throw new Error("Email already exists");
       }
-      winston.error("Error updating borrower", {
+      logger.error("Error updating borrower", {
         error: error.message,
         id,
         updateData,
@@ -100,20 +100,20 @@ class BorrowerRepository {
    */
   static async delete(id) {
     try {
-      winston.debug("Deleting borrower", { id });
+      logger.debug("Deleting borrower", { id });
 
       await prisma.borrower.delete({
         where: { id },
       });
 
-      winston.info("Borrower deleted successfully", { borrowerId: id });
+      logger.info("Borrower deleted successfully", { borrowerId: id });
       return true;
     } catch (error) {
       if (error.code === "P2025") {
-        winston.warn("Borrower not found for deletion", { id });
+        logger.warn("Borrower not found for deletion", { id });
         return false;
       }
-      winston.error("Error deleting borrower", { error: error.message, id });
+      logger.error("Error deleting borrower", { error: error.message, id });
       throw error;
     }
   }
@@ -125,21 +125,21 @@ class BorrowerRepository {
    */
   static async findById(id) {
     try {
-      winston.debug("Finding borrower by ID", { id });
+      logger.debug("Finding borrower by ID", { id });
 
       const borrower = await prisma.borrower.findUnique({
         where: { id },
       });
 
       if (borrower) {
-        winston.debug("Borrower found", { borrowerId: id });
+        logger.debug("Borrower found", { borrowerId: id });
         return Borrower.fromDatabaseRow(borrower);
       } else {
-        winston.debug("Borrower not found", { id });
+        logger.debug("Borrower not found", { id });
         return null;
       }
     } catch (error) {
-      winston.error("Error finding borrower by ID", {
+      logger.error("Error finding borrower by ID", {
         error: error.message,
         id,
       });
@@ -156,7 +156,7 @@ class BorrowerRepository {
    */
   static async findAll(options = {}) {
     try {
-      winston.debug("Finding all borrowers", { options });
+      logger.debug("Finding all borrowers", { options });
 
       const queryOptions = {};
 
@@ -170,10 +170,10 @@ class BorrowerRepository {
 
       const borrowers = await prisma.borrower.findMany(queryOptions);
 
-      winston.debug("Borrowers retrieved", { count: borrowers.length });
+      logger.debug("Borrowers retrieved", { count: borrowers.length });
       return borrowers.map((borrower) => Borrower.fromDatabaseRow(borrower));
     } catch (error) {
-      winston.error("Error finding all borrowers", {
+      logger.error("Error finding all borrowers", {
         error: error.message,
         options,
       });
@@ -188,7 +188,7 @@ class BorrowerRepository {
    */
   static async findByEmail(email) {
     try {
-      winston.debug("Finding borrower by email", { email });
+      logger.debug("Finding borrower by email", { email });
 
       const normalizedEmail = Borrower.normalizeEmail(email);
 
@@ -197,16 +197,16 @@ class BorrowerRepository {
       });
 
       if (borrower) {
-        winston.debug("Borrower found by email", { borrowerId: borrower.id });
+        logger.debug("Borrower found by email", { borrowerId: borrower.id });
         return Borrower.fromDatabaseRow(borrower);
       } else {
-        winston.debug("Borrower not found by email", {
+        logger.debug("Borrower not found by email", {
           email: normalizedEmail,
         });
         return null;
       }
     } catch (error) {
-      winston.error("Error finding borrower by email", {
+      logger.error("Error finding borrower by email", {
         error: error.message,
         email,
       });
@@ -222,7 +222,7 @@ class BorrowerRepository {
    */
   static async emailExists(email, excludeId = null) {
     try {
-      winston.debug("Checking if email exists", { email, excludeId });
+      logger.debug("Checking if email exists", { email, excludeId });
 
       const normalizedEmail = Borrower.normalizeEmail(email);
 
@@ -234,14 +234,14 @@ class BorrowerRepository {
       const borrower = await prisma.borrower.findFirst({ where });
 
       const exists = !!borrower;
-      winston.debug("Email existence check result", {
+      logger.debug("Email existence check result", {
         email: normalizedEmail,
         exists,
       });
 
       return exists;
     } catch (error) {
-      winston.error("Error checking email existence", {
+      logger.error("Error checking email existence", {
         error: error.message,
         email,
       });

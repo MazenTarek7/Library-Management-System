@@ -24,7 +24,7 @@ class BorrowerService {
    */
   async registerBorrower(borrowerData) {
     try {
-      winston.debug("BorrowerService: Registering new borrower", {
+      logger.debug("BorrowerService: Registering new borrower", {
         borrowerData,
       });
 
@@ -41,14 +41,14 @@ class BorrowerService {
         borrowerData
       );
 
-      winston.info("BorrowerService: Borrower registered successfully", {
+      logger.info("BorrowerService: Borrower registered successfully", {
         borrowerId: createdBorrower.id,
         email: createdBorrower.email,
       });
 
       return createdBorrower;
     } catch (error) {
-      winston.error("BorrowerService: Error registering borrower", {
+      logger.error("BorrowerService: Error registering borrower", {
         error: error.message,
         borrowerData,
       });
@@ -65,7 +65,7 @@ class BorrowerService {
    */
   async updateBorrower(id, updateData) {
     try {
-      winston.debug("BorrowerService: Updating borrower", { id, updateData });
+      logger.debug("BorrowerService: Updating borrower", { id, updateData });
 
       const existingBorrower = await this.borrowerRepository.findById(id);
       if (!existingBorrower) {
@@ -90,14 +90,14 @@ class BorrowerService {
         updateData
       );
 
-      winston.info("BorrowerService: Borrower updated successfully", {
+      logger.info("BorrowerService: Borrower updated successfully", {
         borrowerId: id,
         updatedFields: Object.keys(updateData),
       });
 
       return updatedBorrower;
     } catch (error) {
-      winston.error("BorrowerService: Error updating borrower", {
+      logger.error("BorrowerService: Error updating borrower", {
         error: error.message,
         id,
         updateData,
@@ -115,7 +115,7 @@ class BorrowerService {
    */
   async deleteBorrower(id) {
     try {
-      winston.debug("BorrowerService: Deleting borrower", { id });
+      logger.debug("BorrowerService: Deleting borrower", { id });
 
       const existingBorrower = await this.borrowerRepository.findById(id);
       if (!existingBorrower) {
@@ -137,14 +137,14 @@ class BorrowerService {
       const deleted = await this.borrowerRepository.delete(id);
 
       if (deleted) {
-        winston.info("BorrowerService: Borrower deleted successfully", {
+        logger.info("BorrowerService: Borrower deleted successfully", {
           borrowerId: id,
         });
       }
 
       return deleted;
     } catch (error) {
-      winston.error("BorrowerService: Error deleting borrower", {
+      logger.error("BorrowerService: Error deleting borrower", {
         error: error.message,
         id,
       });
@@ -161,17 +161,17 @@ class BorrowerService {
    */
   async getAllBorrowers(options = {}) {
     try {
-      winston.debug("BorrowerService: Getting all borrowers", { options });
+      logger.debug("BorrowerService: Getting all borrowers", { options });
 
       const borrowers = await this.borrowerRepository.findAll(options);
 
-      winston.debug("BorrowerService: Retrieved borrowers", {
+      logger.debug("BorrowerService: Retrieved borrowers", {
         count: borrowers.length,
       });
 
       return borrowers;
     } catch (error) {
-      winston.error("BorrowerService: Error getting all borrowers", {
+      logger.error("BorrowerService: Error getting all borrowers", {
         error: error.message,
         options,
       });
@@ -186,19 +186,19 @@ class BorrowerService {
    */
   async getBorrowerById(id) {
     try {
-      winston.debug("BorrowerService: Getting borrower by ID", { id });
+      logger.debug("BorrowerService: Getting borrower by ID", { id });
 
       const borrower = await this.borrowerRepository.findById(id);
 
       if (borrower) {
-        winston.debug("BorrowerService: Borrower found", { borrowerId: id });
+        logger.debug("BorrowerService: Borrower found", { borrowerId: id });
       } else {
-        winston.debug("BorrowerService: Borrower not found", { id });
+        logger.debug("BorrowerService: Borrower not found", { id });
       }
 
       return borrower;
     } catch (error) {
-      winston.error("BorrowerService: Error getting borrower by ID", {
+      logger.error("BorrowerService: Error getting borrower by ID", {
         error: error.message,
         id,
       });
@@ -213,7 +213,7 @@ class BorrowerService {
    */
   async getBorrowerByEmail(email) {
     try {
-      winston.debug("BorrowerService: Getting borrower by email", { email });
+      logger.debug("BorrowerService: Getting borrower by email", { email });
 
       // Validate email format
       if (!this._isValidEmail(email)) {
@@ -223,18 +223,18 @@ class BorrowerService {
       const borrower = await this.borrowerRepository.findByEmail(email);
 
       if (borrower) {
-        winston.debug("BorrowerService: Borrower found by email", {
+        logger.debug("BorrowerService: Borrower found by email", {
           borrowerId: borrower.id,
         });
       } else {
-        winston.debug("BorrowerService: Borrower not found by email", {
+        logger.debug("BorrowerService: Borrower not found by email", {
           email,
         });
       }
 
       return borrower;
     } catch (error) {
-      winston.error("BorrowerService: Error getting borrower by email", {
+      logger.error("BorrowerService: Error getting borrower by email", {
         error: error.message,
         email,
       });
@@ -249,19 +249,19 @@ class BorrowerService {
    */
   async borrowerExists(id) {
     try {
-      winston.debug("BorrowerService: Checking if borrower exists", { id });
+      logger.debug("BorrowerService: Checking if borrower exists", { id });
 
       const borrower = await this.borrowerRepository.findById(id);
       const exists = !!borrower;
 
-      winston.debug("BorrowerService: Borrower existence check", {
+      logger.debug("BorrowerService: Borrower existence check", {
         id,
         exists,
       });
 
       return exists;
     } catch (error) {
-      winston.error("BorrowerService: Error checking borrower existence", {
+      logger.error("BorrowerService: Error checking borrower existence", {
         error: error.message,
         id,
       });
@@ -277,7 +277,7 @@ class BorrowerService {
    */
   async emailExists(email, excludeId = null) {
     try {
-      winston.debug("BorrowerService: Checking if email exists", {
+      logger.debug("BorrowerService: Checking if email exists", {
         email,
         excludeId,
       });
@@ -292,7 +292,7 @@ class BorrowerService {
         excludeId
       );
 
-      winston.debug("BorrowerService: Email existence check", {
+      logger.debug("BorrowerService: Email existence check", {
         email,
         excludeId,
         exists,
@@ -300,7 +300,7 @@ class BorrowerService {
 
       return exists;
     } catch (error) {
-      winston.error("BorrowerService: Error checking email existence", {
+      logger.error("BorrowerService: Error checking email existence", {
         error: error.message,
         email,
         excludeId,
@@ -316,7 +316,7 @@ class BorrowerService {
    */
   async getBorrowerActiveBorrowings(borrowerId) {
     try {
-      winston.debug("BorrowerService: Getting borrower active borrowings", {
+      logger.debug("BorrowerService: Getting borrower active borrowings", {
         borrowerId,
       });
 
@@ -333,14 +333,14 @@ class BorrowerService {
         }
       );
 
-      winston.debug("BorrowerService: Retrieved active borrowings", {
+      logger.debug("BorrowerService: Retrieved active borrowings", {
         borrowerId,
         count: activeBorrowings.length,
       });
 
       return activeBorrowings;
     } catch (error) {
-      winston.error(
+      logger.error(
         "BorrowerService: Error getting borrower active borrowings",
         {
           error: error.message,

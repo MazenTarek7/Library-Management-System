@@ -46,8 +46,17 @@ class BorrowingService {
         throw new Error("Book not found");
       }
 
-      // Check if book is available
-      if (book.availableQuantity <= 0) {
+      const activeBorrowings = await this.borrowingRepository.findByBook(
+        bookId,
+        {
+          activeOnly: true,
+        }
+      );
+
+      const currentBorrowedQuantity = activeBorrowings.length;
+      const availableQuantity = book.totalQuantity - currentBorrowedQuantity;
+
+      if (availableQuantity <= 0) {
         throw new Error("Book is not available for checkout");
       }
 
@@ -58,12 +67,9 @@ class BorrowingService {
 
       const borrowing = await this.borrowingRepository.create(borrowingData);
 
-      // Update book availability (decrease by 1)
-      await this.bookRepository.update(bookId, {
-        availableQuantity: book.availableQuantity - 1,
-      });
+      await this.bookRepository.updateAvailability(bookId);
 
-      winston.info("BorrowingService: Book checked out successfully", {
+      logger.info("BorrowingService: Book checked out successfully", {
         borrowingId: borrowing.id,
         borrowerId,
         bookId,
@@ -72,7 +78,7 @@ class BorrowingService {
 
       return borrowing;
     } catch (error) {
-      winston.error("BorrowingService: Error checking out book", {
+      logger.error("BorrowingService: Error checking out book", {
         error: error.message,
         borrowerId,
         bookId,
@@ -90,7 +96,7 @@ class BorrowingService {
    */
   async returnBook(borrowingId, returnDate = new Date()) {
     try {
-      winston.debug("BorrowingService: Returning book", {
+      logger.debug("BorrowingService: Returning book", {
         borrowingId,
         returnDate,
       });
@@ -119,15 +125,10 @@ class BorrowingService {
         }
       );
 
-      // Update book availability (increase by 1)
-      const book = await this.bookRepository.findById(borrowing.bookId);
-      if (book) {
-        await this.bookRepository.update(borrowing.bookId, {
-          availableQuantity: book.availableQuantity + 1,
-        });
-      }
+      // Update book availability based on current borrowings
+      await this.bookRepository.updateAvailability(borrowing.bookId);
 
-      winston.info("BorrowingService: Book returned successfully", {
+      logger.info("BorrowingService: Book returned successfully", {
         borrowingId,
         bookId: borrowing.bookId,
         borrowerId: borrowing.borrowerId,
@@ -136,7 +137,7 @@ class BorrowingService {
 
       return updatedBorrowing;
     } catch (error) {
-      winston.error("BorrowingService: Error returning book", {
+      logger.error("BorrowingService: Error returning book", {
         error: error.message,
         borrowingId,
         returnDate,
@@ -152,7 +153,7 @@ class BorrowingService {
    */
   async getBorrowerCurrentBooks(borrowerId) {
     try {
-      winston.debug("BorrowingService: Getting borrower current books", {
+      logger.debug("BorrowingService: Getting borrower current books", {
         borrowerId,
       });
 
@@ -175,14 +176,14 @@ class BorrowingService {
         }
       );
 
-      winston.debug("BorrowingService: Retrieved current books", {
+      logger.debug("BorrowingService: Retrieved current books", {
         borrowerId,
         count: activeBorrowings.length,
       });
 
       return activeBorrowings;
     } catch (error) {
-      winston.error("BorrowingService: Error getting borrower current books", {
+      logger.error("BorrowingService: Error getting borrower current books", {
         error: error.message,
         borrowerId,
       });
@@ -200,7 +201,7 @@ class BorrowingService {
    */
   async getOverdueBooks(options = {}) {
     try {
-      winston.debug("BorrowingService: Getting overdue books", { options });
+      logger.debug("BorrowingService: Getting overdue books", { options });
 
       const asOfDate = options.asOfDate || new Date();
 
@@ -210,14 +211,14 @@ class BorrowingService {
         offset: options.offset,
       });
 
-      winston.debug("BorrowingService: Retrieved overdue books", {
+      logger.debug("BorrowingService: Retrieved overdue books", {
         count: overdueBorrowings.length,
         asOfDate: asOfDate.toISOString(),
       });
 
       return overdueBorrowings;
     } catch (error) {
-      winston.error("BorrowingService: Error getting overdue books", {
+      logger.error("BorrowingService: Error getting overdue books", {
         error: error.message,
         options,
       });
@@ -232,7 +233,7 @@ class BorrowingService {
    */
   async getBorrowingById(borrowingId) {
     try {
-      winston.debug("BorrowingService: Getting borrowing by ID", {
+      logger.debug("BorrowingService: Getting borrowing by ID", {
         borrowingId,
       });
 
@@ -244,14 +245,14 @@ class BorrowingService {
       const borrowing = await this.borrowingRepository.findById(borrowingId);
 
       if (borrowing) {
-        winston.debug("BorrowingService: Borrowing found", { borrowingId });
+        logger.debug("BorrowingService: Borrowing found", { borrowingId });
       } else {
-        winston.debug("BorrowingService: Borrowing not found", { borrowingId });
+        logger.debug("BorrowingService: Borrowing not found", { borrowingId });
       }
 
       return borrowing;
     } catch (error) {
-      winston.error("BorrowingService: Error getting borrowing by ID", {
+      logger.error("BorrowingService: Error getting borrowing by ID", {
         error: error.message,
         borrowingId,
       });
@@ -267,13 +268,10 @@ class BorrowingService {
    */
   async canCheckoutBook(borrowerId, bookId) {
     try {
-      winston.debug(
-        "BorrowingService: Checking if borrower can checkout book",
-        {
-          borrowerId,
-          bookId,
-        }
-      );
+      logger.debug("BorrowingService: Checking if borrower can checkout book", {
+        borrowerId,
+        bookId,
+      });
 
       const result = {
         canCheckout: false,
@@ -292,21 +290,31 @@ class BorrowingService {
         return result;
       }
 
-      // Check if book is available
-      if (book.availableQuantity <= 0) {
+      // Check if book is available by counting current active borrowings
+      const activeBorrowings = await this.borrowingRepository.findByBook(
+        bookId,
+        {
+          activeOnly: true,
+        }
+      );
+
+      const currentBorrowedQuantity = activeBorrowings.length;
+      const availableQuantity = book.totalQuantity - currentBorrowedQuantity;
+
+      if (availableQuantity <= 0) {
         result.reason = "Book is not available for checkout";
         return result;
       }
 
       result.canCheckout = true;
-      winston.debug("BorrowingService: Checkout validation passed", {
+      logger.debug("BorrowingService: Checkout validation passed", {
         borrowerId,
         bookId,
       });
 
       return result;
     } catch (error) {
-      winston.error("BorrowingService: Error checking checkout eligibility", {
+      logger.error("BorrowingService: Error checking checkout eligibility", {
         error: error.message,
         borrowerId,
         bookId,
@@ -321,18 +329,18 @@ class BorrowingService {
    */
   async getBorrowingStatistics() {
     try {
-      winston.debug("BorrowingService: Getting borrowing statistics");
+      logger.debug("BorrowingService: Getting borrowing statistics");
 
       const statistics = await this.borrowingRepository.getStatistics();
 
-      winston.debug(
+      logger.debug(
         "BorrowingService: Retrieved borrowing statistics",
         statistics
       );
 
       return statistics;
     } catch (error) {
-      winston.error("BorrowingService: Error getting borrowing statistics", {
+      logger.error("BorrowingService: Error getting borrowing statistics", {
         error: error.message,
       });
       throw error;
@@ -348,7 +356,7 @@ class BorrowingService {
    */
   async extendDueDate(borrowingId, extensionDays) {
     try {
-      winston.debug("BorrowingService: Extending due date", {
+      logger.debug("BorrowingService: Extending due date", {
         borrowingId,
         extensionDays,
       });
@@ -383,7 +391,7 @@ class BorrowingService {
         }
       );
 
-      winston.info("BorrowingService: Due date extended successfully", {
+      logger.info("BorrowingService: Due date extended successfully", {
         borrowingId,
         oldDueDate: currentDueDate.toISOString(),
         newDueDate: newDueDate.toISOString(),
@@ -392,7 +400,7 @@ class BorrowingService {
 
       return updatedBorrowing;
     } catch (error) {
-      winston.error("BorrowingService: Error extending due date", {
+      logger.error("BorrowingService: Error extending due date", {
         error: error.message,
         borrowingId,
         extensionDays,
@@ -409,7 +417,7 @@ class BorrowingService {
    */
   async isBookBorrowedByBorrower(borrowerId, bookId) {
     try {
-      winston.debug(
+      logger.debug(
         "BorrowingService: Checking if book is borrowed by borrower",
         {
           borrowerId,
@@ -431,7 +439,7 @@ class BorrowingService {
       );
 
       if (bookBorrowing) {
-        winston.debug(
+        logger.debug(
           "BorrowingService: Book is currently borrowed by borrower",
           {
             borrowerId,
@@ -440,7 +448,7 @@ class BorrowingService {
           }
         );
       } else {
-        winston.debug(
+        logger.debug(
           "BorrowingService: Book is not currently borrowed by borrower",
           {
             borrowerId,
@@ -451,7 +459,7 @@ class BorrowingService {
 
       return bookBorrowing || null;
     } catch (error) {
-      winston.error(
+      logger.error(
         "BorrowingService: Error checking if book is borrowed by borrower",
         {
           error: error.message,

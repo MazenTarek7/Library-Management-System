@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma");
-const winston = require("winston");
+const logger = require("../config/logger");
 const Book = require("../models/Book");
 
 /**
@@ -18,7 +18,7 @@ class BookRepository {
    */
   static async create(bookData) {
     try {
-      winston.debug("Creating new book", { bookData });
+      logger.debug("Creating new book", { bookData });
 
       const dbData = Book.toDatabaseRow(bookData);
 
@@ -33,10 +33,10 @@ class BookRepository {
         },
       });
 
-      winston.info("Book created successfully", { bookId: createdBook.id });
+      logger.info("Book created successfully", { bookId: createdBook.id });
       return Book.fromDatabaseRow(createdBook);
     } catch (error) {
-      winston.error("Error creating book", { error: error.message, bookData });
+      logger.error("Error creating book", { error: error.message, bookData });
 
       if (error.code === "P2002") {
         // Unique constraint violation
@@ -61,7 +61,7 @@ class BookRepository {
    */
   static async update(id, updateData) {
     try {
-      winston.debug("Updating book", { id, updateData });
+      logger.debug("Updating book", { id, updateData });
 
       const updateFields = {};
 
@@ -71,8 +71,6 @@ class BookRepository {
       if (updateData.isbn !== undefined) updateFields.isbn = updateData.isbn;
       if (updateData.totalQuantity !== undefined)
         updateFields.totalQuantity = updateData.totalQuantity;
-      if (updateData.availableQuantity !== undefined)
-        updateFields.availableQuantity = updateData.availableQuantity;
       if (updateData.shelfLocation !== undefined)
         updateFields.shelfLocation = updateData.shelfLocation;
 
@@ -81,11 +79,11 @@ class BookRepository {
         data: updateFields,
       });
 
-      winston.info("Book updated successfully", { bookId: id });
+      logger.info("Book updated successfully", { bookId: id });
       return Book.fromDatabaseRow(updatedBook);
     } catch (error) {
       if (error.code === "P2025") {
-        winston.warn("Book not found for update", { id });
+        logger.warn("Book not found for update", { id });
         return null;
       }
 
@@ -100,7 +98,7 @@ class BookRepository {
         throw new Error("Invalid reference data provided");
       }
 
-      winston.error("Error updating book", {
+      logger.error("Error updating book", {
         error: error.message,
         id,
         updateData,
@@ -116,20 +114,20 @@ class BookRepository {
    */
   static async delete(id) {
     try {
-      winston.debug("Deleting book", { id });
+      logger.debug("Deleting book", { id });
 
       await prisma.book.delete({
         where: { id },
       });
 
-      winston.info("Book deleted successfully", { bookId: id });
+      logger.info("Book deleted successfully", { bookId: id });
       return true;
     } catch (error) {
       if (error.code === "P2025") {
-        winston.warn("Book not found for deletion", { id });
+        logger.warn("Book not found for deletion", { id });
         return false;
       }
-      winston.error("Error deleting book", { error: error.message, id });
+      logger.error("Error deleting book", { error: error.message, id });
       throw error;
     }
   }
@@ -141,21 +139,21 @@ class BookRepository {
    */
   static async findById(id) {
     try {
-      winston.debug("Finding book by ID", { id });
+      logger.debug("Finding book by ID", { id });
 
       const book = await prisma.book.findUnique({
         where: { id },
       });
 
       if (book) {
-        winston.debug("Book found", { bookId: id });
+        logger.debug("Book found", { bookId: id });
         return Book.fromDatabaseRow(book);
       } else {
-        winston.debug("Book not found", { id });
+        logger.debug("Book not found", { id });
         return null;
       }
     } catch (error) {
-      winston.error("Error finding book by ID", { error: error.message, id });
+      logger.error("Error finding book by ID", { error: error.message, id });
       throw error;
     }
   }
@@ -169,7 +167,7 @@ class BookRepository {
    */
   static async findAll(options = {}) {
     try {
-      winston.debug("Finding all books", { options });
+      logger.debug("Finding all books", { options });
 
       const queryOptions = {};
 
@@ -183,12 +181,70 @@ class BookRepository {
 
       const books = await prisma.book.findMany(queryOptions);
 
-      winston.debug("Books retrieved", { count: books.length });
+      logger.debug("Books retrieved", { count: books.length });
       return books.map((book) => Book.fromDatabaseRow(book));
     } catch (error) {
-      winston.error("Error finding all books", {
+      logger.error("Error finding all books", {
         error: error.message,
         options,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Update book availability based on current borrowings
+   * @param {number} id - Book ID
+   * @returns {Promise<Object|null>} Updated book or null if not found
+   */
+  static async updateAvailability(id) {
+    try {
+      logger.debug("Updating book availability", { id });
+
+      // Get the book with current borrowings
+      const book = await prisma.book.findUnique({
+        where: { id },
+        include: {
+          borrowings: {
+            where: {
+              returnDate: null, // Only active borrowings
+            },
+          },
+        },
+      });
+
+      if (!book) {
+        logger.warn("Book not found for availability update", { id });
+        return null;
+      }
+
+      // Calculate available quantity
+      const borrowedQuantity = book.borrowings.length;
+      const availableQuantity = Math.max(
+        0,
+        book.totalQuantity - borrowedQuantity
+      );
+
+      // Update the book with calculated available quantity
+      const updatedBook = await prisma.book.update({
+        where: { id },
+        data: {
+          availableQuantity: availableQuantity,
+        },
+      });
+
+      logger.info("Book availability updated successfully", {
+        bookId: id,
+        totalQuantity: book.totalQuantity,
+        borrowedQuantity,
+        availableQuantity,
+      });
+
+      return Book.fromDatabaseRow(updatedBook);
+    } catch (error) {
+      logger.error("Error updating book availability", {
+        error: error.message,
+        id,
       });
       throw error;
     }
@@ -206,7 +262,7 @@ class BookRepository {
    */
   static async search(criteria = {}) {
     try {
-      winston.debug("Searching books", { criteria });
+      logger.debug("Searching books", { criteria });
 
       const whereConditions = [];
 
@@ -248,14 +304,14 @@ class BookRepository {
 
       const books = await prisma.book.findMany(queryOptions);
 
-      winston.debug("Book search completed", {
+      logger.debug("Book search completed", {
         criteria,
         resultCount: books.length,
       });
 
       return books.map((book) => Book.fromDatabaseRow(book));
     } catch (error) {
-      winston.error("Error searching books", {
+      logger.error("Error searching books", {
         error: error.message,
         criteria,
       });

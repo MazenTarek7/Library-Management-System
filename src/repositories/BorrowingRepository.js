@@ -1,5 +1,5 @@
 const prisma = require("../config/prisma");
-const winston = require("winston");
+const logger = require("../config/logger");
 const Borrowing = require("../models/Borrowing");
 
 /**
@@ -15,7 +15,7 @@ class BorrowingRepository {
    */
   static async create(borrowingData) {
     try {
-      winston.debug("Creating new borrowing", { borrowingData });
+      logger.debug("Creating new borrowing", { borrowingData });
 
       const checkoutDate = new Date();
       const dueDate = Borrowing.calculateDueDate(checkoutDate);
@@ -33,12 +33,12 @@ class BorrowingRepository {
         },
       });
 
-      winston.info("Borrowing created successfully", {
+      logger.info("Borrowing created successfully", {
         borrowingId: createdBorrowing.id,
       });
       return Borrowing.fromDatabaseRow(createdBorrowing);
     } catch (error) {
-      winston.error("Error creating borrowing", {
+      logger.error("Error creating borrowing", {
         error: error.message,
         borrowingData,
       });
@@ -55,7 +55,7 @@ class BorrowingRepository {
    */
   static async update(id, updateData) {
     try {
-      winston.debug("Updating borrowing", { id, updateData });
+      logger.debug("Updating borrowing", { id, updateData });
 
       const updateFields = {};
 
@@ -72,14 +72,14 @@ class BorrowingRepository {
         },
       });
 
-      winston.info("Borrowing updated successfully", { borrowingId: id });
+      logger.info("Borrowing updated successfully", { borrowingId: id });
       return Borrowing.fromDatabaseRow(updatedBorrowing);
     } catch (error) {
       if (error.code === "P2025") {
-        winston.warn("Borrowing not found for update", { id });
+        logger.warn("Borrowing not found for update", { id });
         return null;
       }
-      winston.error("Error updating borrowing", {
+      logger.error("Error updating borrowing", {
         error: error.message,
         id,
         updateData,
@@ -99,7 +99,7 @@ class BorrowingRepository {
    */
   static async findByBorrower(borrowerId, options = {}) {
     try {
-      winston.debug("Finding borrowings by borrower", { borrowerId, options });
+      logger.debug("Finding borrowings by borrower", { borrowerId, options });
 
       const where = { borrowerId };
 
@@ -128,7 +128,7 @@ class BorrowingRepository {
 
       const borrowings = await prisma.borrowing.findMany(queryOptions);
 
-      winston.debug("Borrowings retrieved by borrower", {
+      logger.debug("Borrowings retrieved by borrower", {
         borrowerId,
         count: borrowings.length,
       });
@@ -137,7 +137,7 @@ class BorrowingRepository {
         Borrowing.fromDatabaseRow(borrowing)
       );
     } catch (error) {
-      winston.error("Error finding borrowings by borrower", {
+      logger.error("Error finding borrowings by borrower", {
         error: error.message,
         borrowerId,
         options,
@@ -157,7 +157,7 @@ class BorrowingRepository {
    */
   static async findByBook(bookId, options = {}) {
     try {
-      winston.debug("Finding borrowings by book", { bookId, options });
+      logger.debug("Finding borrowings by book", { bookId, options });
 
       const where = { bookId };
 
@@ -186,7 +186,7 @@ class BorrowingRepository {
 
       const borrowings = await prisma.borrowing.findMany(queryOptions);
 
-      winston.debug("Borrowings retrieved by book", {
+      logger.debug("Borrowings retrieved by book", {
         bookId,
         count: borrowings.length,
       });
@@ -195,7 +195,7 @@ class BorrowingRepository {
         Borrowing.fromDatabaseRow(borrowing)
       );
     } catch (error) {
-      winston.error("Error finding borrowings by book", {
+      logger.error("Error finding borrowings by book", {
         error: error.message,
         bookId,
         options,
@@ -214,7 +214,7 @@ class BorrowingRepository {
    */
   static async findOverdue(options = {}) {
     try {
-      winston.debug("Finding overdue borrowings", { options });
+      logger.debug("Finding overdue borrowings", { options });
 
       const asOfDate = options.asOfDate || new Date();
 
@@ -244,7 +244,7 @@ class BorrowingRepository {
 
       const borrowings = await prisma.borrowing.findMany(queryOptions);
 
-      winston.debug("Overdue borrowings retrieved", {
+      logger.debug("Overdue borrowings retrieved", {
         count: borrowings.length,
         asOfDate: asOfDate.toISOString(),
       });
@@ -259,7 +259,7 @@ class BorrowingRepository {
         return borrowingObj;
       });
     } catch (error) {
-      winston.error("Error finding overdue borrowings", {
+      logger.error("Error finding overdue borrowings", {
         error: error.message,
         options,
       });
@@ -274,7 +274,7 @@ class BorrowingRepository {
    */
   static async findById(id) {
     try {
-      winston.debug("Finding borrowing by ID", { id });
+      logger.debug("Finding borrowing by ID", { id });
 
       const borrowing = await prisma.borrowing.findUnique({
         where: { id },
@@ -285,14 +285,14 @@ class BorrowingRepository {
       });
 
       if (borrowing) {
-        winston.debug("Borrowing found", { borrowingId: id });
+        logger.debug("Borrowing found", { borrowingId: id });
         return Borrowing.fromDatabaseRow(borrowing);
       } else {
-        winston.debug("Borrowing not found", { id });
+        logger.debug("Borrowing not found", { id });
         return null;
       }
     } catch (error) {
-      winston.error("Error finding borrowing by ID", {
+      logger.error("Error finding borrowing by ID", {
         error: error.message,
         id,
       });
@@ -307,7 +307,7 @@ class BorrowingRepository {
    */
   static async findActiveByBook(bookId) {
     try {
-      winston.debug("Finding active borrowing by book", { bookId });
+      logger.debug("Finding active borrowing by book", { bookId });
 
       const borrowing = await prisma.borrowing.findFirst({
         where: {
@@ -324,17 +324,17 @@ class BorrowingRepository {
       });
 
       if (borrowing) {
-        winston.debug("Active borrowing found for book", {
+        logger.debug("Active borrowing found for book", {
           bookId,
           borrowingId: borrowing.id,
         });
         return Borrowing.fromDatabaseRow(borrowing);
       } else {
-        winston.debug("No active borrowing found for book", { bookId });
+        logger.debug("No active borrowing found for book", { bookId });
         return null;
       }
     } catch (error) {
-      winston.error("Error finding active borrowing by book", {
+      logger.error("Error finding active borrowing by book", {
         error: error.message,
         bookId,
       });
@@ -350,7 +350,7 @@ class BorrowingRepository {
    */
   static async returnBook(borrowingId, returnDate = new Date()) {
     try {
-      winston.debug("Returning book", { borrowingId, returnDate });
+      logger.debug("Returning book", { borrowingId, returnDate });
 
       const updatedBorrowing = await prisma.borrowing.update({
         where: {
@@ -366,7 +366,7 @@ class BorrowingRepository {
         },
       });
 
-      winston.info("Book returned successfully", {
+      logger.info("Book returned successfully", {
         borrowingId,
         returnDate: returnDate.toISOString(),
       });
@@ -374,12 +374,12 @@ class BorrowingRepository {
       return Borrowing.fromDatabaseRow(updatedBorrowing);
     } catch (error) {
       if (error.code === "P2025") {
-        winston.warn("Borrowing not found or already returned", {
+        logger.warn("Borrowing not found or already returned", {
           borrowingId,
         });
         return null;
       }
-      winston.error("Error returning book", {
+      logger.error("Error returning book", {
         error: error.message,
         borrowingId,
         returnDate,
@@ -394,7 +394,7 @@ class BorrowingRepository {
    */
   static async getStatistics() {
     try {
-      winston.debug("Getting borrowing statistics");
+      logger.debug("Getting borrowing statistics");
 
       const [
         totalBorrowings,
@@ -424,10 +424,10 @@ class BorrowingRepository {
         returned: returnedBorrowings,
       };
 
-      winston.debug("Borrowing statistics retrieved", statistics);
+      logger.debug("Borrowing statistics retrieved", statistics);
       return statistics;
     } catch (error) {
-      winston.error("Error getting borrowing statistics", {
+      logger.error("Error getting borrowing statistics", {
         error: error.message,
       });
       throw error;

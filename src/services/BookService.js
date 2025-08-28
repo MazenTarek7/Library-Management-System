@@ -1,4 +1,4 @@
-const winston = require("winston");
+const logger = require("../config/logger");
 const BookRepository = require("../repositories/BookRepository");
 const BorrowingRepository = require("../repositories/BorrowingRepository");
 
@@ -27,7 +27,7 @@ class BookService {
    */
   async createBook(bookData) {
     try {
-      winston.debug("BookService: Creating new book", { bookData });
+      logger.debug("BookService: Creating new book", { bookData });
 
       this._validateBookData(bookData);
 
@@ -44,14 +44,14 @@ class BookService {
 
       const createdBook = await this.bookRepository.create(bookToCreate);
 
-      winston.info("BookService: Book created successfully", {
+      logger.info("BookService: Book created successfully", {
         bookId: createdBook.id,
         title: createdBook.title,
       });
 
       return createdBook;
     } catch (error) {
-      winston.error("BookService: Error creating book", {
+      logger.error("BookService: Error creating book", {
         error: error.message,
         bookData,
       });
@@ -68,7 +68,7 @@ class BookService {
    */
   async updateBook(id, updateData) {
     try {
-      winston.debug("BookService: Updating book", { id, updateData });
+      logger.debug("BookService: Updating book", { id, updateData });
 
       // Check if book exists
       const existingBook = await this.bookRepository.findById(id);
@@ -96,14 +96,21 @@ class BookService {
 
       const updatedBook = await this.bookRepository.update(id, updateData);
 
-      winston.info("BookService: Book updated successfully", {
+      if (updateData.totalQuantity !== undefined) {
+        await this.updateBookAvailability(id);
+        // Get the updated book with recalculated availability
+        const finalBook = await this.bookRepository.findById(id);
+        return finalBook;
+      }
+
+      logger.info("BookService: Book updated successfully", {
         bookId: id,
         updatedFields: Object.keys(updateData),
       });
 
       return updatedBook;
     } catch (error) {
-      winston.error("BookService: Error updating book", {
+      logger.error("BookService: Error updating book", {
         error: error.message,
         id,
         updateData,
@@ -121,7 +128,7 @@ class BookService {
    */
   async deleteBook(id) {
     try {
-      winston.debug("BookService: Deleting book", { id });
+      logger.debug("BookService: Deleting book", { id });
 
       // Check if book exists
       const existingBook = await this.bookRepository.findById(id);
@@ -141,12 +148,12 @@ class BookService {
       const deleted = await this.bookRepository.delete(id);
 
       if (deleted) {
-        winston.info("BookService: Book deleted successfully", { bookId: id });
+        logger.info("BookService: Book deleted successfully", { bookId: id });
       }
 
       return deleted;
     } catch (error) {
-      winston.error("BookService: Error deleting book", {
+      logger.error("BookService: Error deleting book", {
         error: error.message,
         id,
       });
@@ -163,15 +170,15 @@ class BookService {
    */
   async getAllBooks(options = {}) {
     try {
-      winston.debug("BookService: Getting all books", { options });
+      logger.debug("BookService: Getting all books", { options });
 
       const books = await this.bookRepository.findAll(options);
 
-      winston.debug("BookService: Retrieved books", { count: books.length });
+      logger.debug("BookService: Retrieved books", { count: books.length });
 
       return books;
     } catch (error) {
-      winston.error("BookService: Error getting all books", {
+      logger.error("BookService: Error getting all books", {
         error: error.message,
         options,
       });
@@ -191,18 +198,18 @@ class BookService {
    */
   async searchBooks(criteria = {}) {
     try {
-      winston.debug("BookService: Searching books", { criteria });
+      logger.debug("BookService: Searching books", { criteria });
 
       const books = await this.bookRepository.search(criteria);
 
-      winston.debug("BookService: Search completed", {
+      logger.debug("BookService: Search completed", {
         criteria,
         resultCount: books.length,
       });
 
       return books;
     } catch (error) {
-      winston.error("BookService: Error searching books", {
+      logger.error("BookService: Error searching books", {
         error: error.message,
         criteria,
       });
@@ -217,19 +224,19 @@ class BookService {
    */
   async getBookById(id) {
     try {
-      winston.debug("BookService: Getting book by ID", { id });
+      logger.debug("BookService: Getting book by ID", { id });
 
       const book = await this.bookRepository.findById(id);
 
       if (book) {
-        winston.debug("BookService: Book found", { bookId: id });
+        logger.debug("BookService: Book found", { bookId: id });
       } else {
-        winston.debug("BookService: Book not found", { id });
+        logger.debug("BookService: Book not found", { id });
       }
 
       return book;
     } catch (error) {
-      winston.error("BookService: Error getting book by ID", {
+      logger.error("BookService: Error getting book by ID", {
         error: error.message,
         id,
       });
@@ -244,7 +251,7 @@ class BookService {
    */
   async isBookAvailable(bookId) {
     try {
-      winston.debug("BookService: Checking book availability", { bookId });
+      logger.debug("BookService: Checking book availability", { bookId });
 
       const book = await this.bookRepository.findById(bookId);
 
@@ -252,17 +259,29 @@ class BookService {
         return false;
       }
 
-      const isAvailable = book.availableQuantity > 0;
-
-      winston.debug("BookService: Book availability check", {
+      // Check availability by counting current active borrowings
+      const activeBorrowings = await this.borrowingRepository.findByBook(
         bookId,
-        availableQuantity: book.availableQuantity,
+        {
+          activeOnly: true,
+        }
+      );
+
+      const currentBorrowedQuantity = activeBorrowings.length;
+      const availableQuantity = book.totalQuantity - currentBorrowedQuantity;
+      const isAvailable = availableQuantity > 0;
+
+      logger.debug("BookService: Book availability check", {
+        bookId,
+        totalQuantity: book.totalQuantity,
+        currentBorrowedQuantity,
+        availableQuantity,
         isAvailable,
       });
 
       return isAvailable;
     } catch (error) {
-      winston.error("BookService: Error checking book availability", {
+      logger.error("BookService: Error checking book availability", {
         error: error.message,
         bookId,
       });
@@ -271,17 +290,15 @@ class BookService {
   }
 
   /**
-   * Update book availability (used by borrowing operations)
+   * Update book availability based on current borrowings
    * @param {number} bookId - Book ID
-   * @param {number} quantityChange - Change in available quantity (positive or negative)
    * @returns {Promise<Object>} Updated book
-   * @throws {Error} If update would result in invalid quantity
+   * @throws {Error} If book not found
    */
-  async updateBookAvailability(bookId, quantityChange) {
+  async updateBookAvailability(bookId) {
     try {
-      winston.debug("BookService: Updating book availability", {
+      logger.debug("BookService: Updating book availability", {
         bookId,
-        quantityChange,
       });
 
       const book = await this.bookRepository.findById(bookId);
@@ -290,31 +307,17 @@ class BookService {
         throw new Error("Book not found");
       }
 
-      const newAvailableQuantity = book.availableQuantity + quantityChange;
+      const updatedBook = await this.bookRepository.updateAvailability(bookId);
 
-      // Validate new quantity
-      if (newAvailableQuantity < 0) {
-        throw new Error("Available quantity cannot be negative");
-      }
-
-      if (newAvailableQuantity > book.totalQuantity) {
-        throw new Error("Available quantity cannot exceed total quantity");
-      }
-
-      const updatedBook = await this.bookRepository.update(bookId, {
-        availableQuantity: newAvailableQuantity,
-      });
-
-      winston.info("BookService: Book availability updated", {
+      logger.info("BookService: Book availability updated", {
         bookId,
         oldQuantity: book.availableQuantity,
-        newQuantity: newAvailableQuantity,
-        change: quantityChange,
+        newQuantity: updatedBook.availableQuantity,
       });
 
       return updatedBook;
     } catch (error) {
-      winston.error("BookService: Error updating book availability", {
+      logger.error("BookService: Error updating book availability", {
         error: error.message,
         bookId,
         quantityChange,
