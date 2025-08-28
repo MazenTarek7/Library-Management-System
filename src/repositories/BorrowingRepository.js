@@ -433,6 +433,97 @@ class BorrowingRepository {
       throw error;
     }
   }
+
+  /**
+   * Find borrowings whose checkoutDate is within [startDate, endDate]
+   * @param {Object} options
+   * @param {Date} options.startDate
+   * @param {Date} options.endDate
+   * @returns {Promise<Array>}
+   */
+  static async findBorrowingsBetween({ startDate, endDate }) {
+    try {
+      logger.debug("Finding borrowings between dates", {
+        startDate: startDate?.toISOString?.(),
+        endDate: endDate?.toISOString?.(),
+      });
+
+      const borrowings = await prisma.borrowing.findMany({
+        where: {
+          checkoutDate: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        include: {
+          book: true,
+          borrower: true,
+        },
+        orderBy: {
+          checkoutDate: "asc",
+        },
+      });
+
+      return borrowings.map((b) => Borrowing.fromDatabaseRow(b));
+    } catch (error) {
+      logger.error("Error finding borrowings between dates", {
+        error: error.message,
+        startDate,
+        endDate,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Find overdue borrowings whose dueDate is within [startDate, endDate]
+   * and not yet returned
+   * @param {Object} options
+   * @param {Date} options.startDate
+   * @param {Date} options.endDate
+   * @returns {Promise<Array>}
+   */
+  static async findOverdueBetween({ startDate, endDate }) {
+    try {
+      logger.debug("Finding overdue borrowings between dates", {
+        startDate: startDate?.toISOString?.(),
+        endDate: endDate?.toISOString?.(),
+      });
+
+      const borrowings = await prisma.borrowing.findMany({
+        where: {
+          returnDate: null,
+          dueDate: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        include: {
+          book: true,
+          borrower: true,
+        },
+        orderBy: {
+          dueDate: "asc",
+        },
+      });
+
+      return borrowings.map((b) => {
+        const borrowingObj = Borrowing.fromDatabaseRow(b);
+        borrowingObj.daysOverdue = Borrowing.getDaysOverdue(
+          borrowingObj,
+          endDate || new Date()
+        );
+        return borrowingObj;
+      });
+    } catch (error) {
+      logger.error("Error finding overdue borrowings between dates", {
+        error: error.message,
+        startDate,
+        endDate,
+      });
+      throw error;
+    }
+  }
 }
 
 module.exports = BorrowingRepository;

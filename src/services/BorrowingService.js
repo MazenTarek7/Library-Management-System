@@ -348,6 +348,43 @@ class BorrowingService {
   }
 
   /**
+   * Get last month's date range [start, end]
+   * @returns {{start: Date, end: Date}}
+   */
+  static getLastMonthRange() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    return { start, end };
+  }
+
+  /**
+   * Get borrowings of last month
+   * @returns {Promise<Array>}
+   */
+  async getBorrowingsOfLastMonth() {
+    const { start, end } = BorrowingService.getLastMonthRange();
+    const items = await this.borrowingRepository.findBorrowingsBetween({
+      startDate: start,
+      endDate: end,
+    });
+    return items;
+  }
+
+  /**
+   * Get overdue borrowings whose due date fell in last month and are still overdue
+   * @returns {Promise<Array>}
+   */
+  async getOverdueBorrowingsOfLastMonth() {
+    const { start, end } = BorrowingService.getLastMonthRange();
+    const items = await this.borrowingRepository.findOverdueBetween({
+      startDate: start,
+      endDate: end,
+    });
+    return items;
+  }
+
+  /**
    * Extend due date for a borrowing
    * @param {number} borrowingId - Borrowing ID
    * @param {number} extensionDays - Number of days to extend

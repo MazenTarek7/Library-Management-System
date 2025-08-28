@@ -95,6 +95,41 @@ class Seeder {
     const overdueDate = new Date(today);
     overdueDate.setDate(today.getDate() - 5);
 
+    // Calculate last month's date range
+    const lastMonthStart = new Date(
+      today.getFullYear(),
+      today.getMonth() - 1,
+      1
+    );
+    const lastMonthEnd = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999
+    );
+
+    // Pick concrete dates inside last month for deterministic seeding
+    const lastMonthCheckout1 = new Date(
+      lastMonthStart.getFullYear(),
+      lastMonthStart.getMonth(),
+      Math.min(5, lastMonthEnd.getDate())
+    );
+    const lastMonthDue1 = new Date(lastMonthCheckout1);
+    lastMonthDue1.setDate(lastMonthCheckout1.getDate() + 14);
+    const lastMonthReturn1 = new Date(lastMonthCheckout1);
+    lastMonthReturn1.setDate(lastMonthCheckout1.getDate() + 10);
+
+    const lastMonthCheckout2 = new Date(
+      lastMonthStart.getFullYear(),
+      lastMonthStart.getMonth(),
+      Math.min(2, lastMonthEnd.getDate())
+    );
+    const lastMonthDue2 = new Date(lastMonthEnd);
+    lastMonthDue2.setDate(lastMonthEnd.getDate() - 2);
+
     return [
       {
         borrowerId: 1,
@@ -116,6 +151,22 @@ class Seeder {
         checkoutDate: pastDate,
         dueDate: overdueDate,
         returnDate: null, // Overdue borrowing
+      },
+      // Last-month borrowing (returned within last month)
+      {
+        borrowerId: 4,
+        bookId: 3, // 1984
+        checkoutDate: lastMonthCheckout1,
+        dueDate: lastMonthDue1,
+        returnDate: lastMonthReturn1,
+      },
+      // Last-month overdue (due date last month, not returned)
+      {
+        borrowerId: 1,
+        bookId: 4, // Pride and Prejudice
+        checkoutDate: lastMonthCheckout2,
+        dueDate: lastMonthDue2,
+        returnDate: null,
       },
     ];
   }

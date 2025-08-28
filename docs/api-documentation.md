@@ -473,6 +473,38 @@ Get all books that are currently overdue.
 }
 ```
 
+### Export Borrowings of Last Month (CSV)
+
+**GET** `/api/borrowings/exports/last-month`
+
+Download all borrowings whose checkoutDate falls within the previous calendar month as a CSV file.
+
+**Response Headers:**
+
+- `Content-Type: text/csv; charset=utf-8`
+- `Content-Disposition: attachment; filename="borrowings_<YYYY-MM-DD>_<YYYY-MM-DD>.csv"`
+
+**CSV Columns:**
+
+`id, borrowerId, borrowerName, borrowerEmail, bookId, bookTitle, bookAuthor, isbn, checkoutDate, dueDate, returnDate`
+
+---
+
+### Export Overdue Borrowings of Last Month (CSV)
+
+**GET** `/api/borrowings/exports/overdue-last-month`
+
+Download all overdue borrowings whose dueDate fell within the previous calendar month and were not returned by that month-end, as a CSV file.
+
+**Response Headers:**
+
+- `Content-Type: text/csv; charset=utf-8`
+- `Content-Disposition: attachment; filename="overdue_<YYYY-MM-DD>_<YYYY-MM-DD>.csv"`
+
+**CSV Columns:**
+
+`id, borrowerId, borrowerName, borrowerEmail, bookId, bookTitle, bookAuthor, isbn, checkoutDate, dueDate, daysOverdue`
+
 ## Error Codes
 
 | Code                    | Description                          |
