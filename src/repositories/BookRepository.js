@@ -37,6 +37,18 @@ class BookRepository {
       return Book.fromDatabaseRow(createdBook);
     } catch (error) {
       winston.error("Error creating book", { error: error.message, bookData });
+
+      if (error.code === "P2002") {
+        // Unique constraint violation
+        const field = error.meta?.target?.[0] || "field";
+        throw new Error(`A book with this ${field} already exists`);
+      }
+
+      if (error.code === "P2003") {
+        // Foreign key constraint violation
+        throw new Error("Invalid reference data provided");
+      }
+
       throw error;
     }
   }
@@ -76,6 +88,18 @@ class BookRepository {
         winston.warn("Book not found for update", { id });
         return null;
       }
+
+      if (error.code === "P2002") {
+        // Unique constraint violation
+        const field = error.meta?.target?.[0] || "field";
+        throw new Error(`A book with this ${field} already exists`);
+      }
+
+      if (error.code === "P2003") {
+        // Foreign key constraint violation
+        throw new Error("Invalid reference data provided");
+      }
+
       winston.error("Error updating book", {
         error: error.message,
         id,
@@ -184,25 +208,33 @@ class BookRepository {
     try {
       winston.debug("Searching books", { criteria });
 
-      const where = {};
+      const whereConditions = [];
 
       if (criteria.title) {
-        where.title = {
-          contains: criteria.title,
-          mode: "insensitive",
-        };
+        whereConditions.push({
+          title: {
+            contains: criteria.title,
+            mode: "insensitive",
+          },
+        });
       }
 
       if (criteria.author) {
-        where.author = {
-          contains: criteria.author,
-          mode: "insensitive",
-        };
+        whereConditions.push({
+          author: {
+            contains: criteria.author,
+            mode: "insensitive",
+          },
+        });
       }
 
       if (criteria.isbn) {
-        where.isbn = criteria.isbn;
+        whereConditions.push({
+          isbn: criteria.isbn,
+        });
       }
+
+      const where = whereConditions.length > 0 ? { OR: whereConditions } : {};
 
       const queryOptions = { where };
 
