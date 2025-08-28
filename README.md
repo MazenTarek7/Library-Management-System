@@ -98,6 +98,29 @@ The API provides endpoints for:
 
 For detailed API documentation with examples, check [API Documentation](docs/api-documentation.md).
 
+## Security & Rate Limiting
+
+### Authentication
+
+Some endpoints require Basic Authentication:
+
+- `GET /api/books` - List all books
+- `GET /api/books/:id` - Get specific book
+
+- **Username**: `admin`
+- **Password**: `admin`
+
+**Example with Authorization header:**
+
+### Rate Limiting
+
+The following endpoints are rate-limited to prevent abuse:
+
+- **Rate Limit**: 10 requests per 15 minutes per IP address
+- **Protected Endpoints**:
+  - `GET /api/books`
+  - `GET /api/books/:id`
+
 ## License
 
 MIT

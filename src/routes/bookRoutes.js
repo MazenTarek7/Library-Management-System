@@ -2,6 +2,8 @@ const express = require("express");
 const BookController = require("../controllers/BookController");
 const ValidationMiddleware = require("../middleware/validationMiddleware");
 const { bookSchemas, querySchemas } = require("../models/validation");
+const { bookRateLimiter } = require("../middleware/rateLimitMiddleware");
+const { basicAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 const bookController = new BookController();
@@ -9,18 +11,26 @@ const bookController = new BookController();
 /**
  * GET /api/books - Get all books with pagination and search
  * Query parameters: limit, offset, search
+ * Rate Limited: 100 requests per 15 minutes per IP
+ * Authentication: Basic Auth required
  */
 router.get(
   "/",
+  bookRateLimiter,
+  basicAuth,
   ValidationMiddleware.validateQuery(querySchemas.bookListing),
   (req, res, next) => bookController.getAllBooks(req, res, next)
 );
 
 /**
  * GET /api/books/:id - Get a specific book by ID
+ * Rate Limited: 100 requests per 15 minutes per IP
+ * Authentication: Basic Auth required
  */
 router.get(
   "/:id",
+  bookRateLimiter,
+  basicAuth,
   ValidationMiddleware.validateParams(bookSchemas.bookId),
   (req, res, next) => bookController.getBookById(req, res, next)
 );

@@ -12,11 +12,16 @@ const {
   RequestLoggerMiddleware,
   requestLogger,
 } = require("./requestLoggerMiddleware");
+const { bookRateLimiter } = require("./rateLimitMiddleware");
+const { basicAuth } = require("./authMiddleware");
 
 module.exports = {
   ValidationMiddleware,
   ErrorHandlerMiddleware,
   RequestLoggerMiddleware,
+  // Security middleware
+  bookRateLimiter,
+  basicAuth,
   // Error classes
   AppError,
   ValidationError,

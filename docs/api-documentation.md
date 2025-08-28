@@ -485,3 +485,4 @@ Get all books that are currently overdue.
 | `ALREADY_RETURNED`      | Book already returned                |
 | `DATABASE_ERROR`        | Database operation failed            |
 | `INTERNAL_ERROR`        | Internal server error                |
+| `RATE_LIMIT_EXCEEDED`   | Rate Limit Exceeded                  |
