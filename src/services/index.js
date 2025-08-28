@@ -1,2 +1,10 @@
 // Export all services
-module.exports = {};
+const BookService = require("./BookService");
+const BorrowerService = require("./BorrowerService");
+const BorrowingService = require("./BorrowingService");
+
+module.exports = {
+  BookService,
+  BorrowerService,
+  BorrowingService,
+};

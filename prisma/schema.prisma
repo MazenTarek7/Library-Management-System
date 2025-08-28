@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id                Int         @id @default(autoincrement())
+  title             String      @db.VarChar(255)
+  author            String      @db.VarChar(255)
+  isbn              String      @unique @db.VarChar(13)
+  totalQuantity     Int         @map("total_quantity")
+  availableQuantity Int         @map("available_quantity")
+  shelfLocation     String      @map("shelf_location") @db.VarChar(50)
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  borrowings        Borrowing[]
+
+  @@index([title])
+  @@index([author])
+  @@index([title, author])
+  @@map("books")
+}
+
+model Borrower {
+  id             Int         @id @default(autoincrement())
+  name           String      @db.VarChar(255)
+  email          String      @unique @db.VarChar(255)
+  registeredDate DateTime    @default(now()) @map("registered_date") @db.Date
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+  borrowings     Borrowing[]
+
+  @@map("borrowers")
+}
+
+model Borrowing {
+  id           Int       @id @default(autoincrement())
+  borrowerId   Int       @map("borrower_id")
+  bookId       Int       @map("book_id")
+  checkoutDate DateTime  @default(now()) @map("checkout_date") @db.Date
+  dueDate      DateTime  @map("due_date") @db.Date
+  returnDate   DateTime? @map("return_date") @db.Date
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  book         Book      @relation(fields: [bookId], references: [id])
+  borrower     Borrower  @relation(fields: [borrowerId], references: [id])
+
+  @@map("borrowings")
+}

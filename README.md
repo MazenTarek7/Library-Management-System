@@ -9,37 +9,65 @@ A RESTful API for library management built with Node.js, Express.js, and Postgre
 - Book checkout and return tracking
 - Overdue book monitoring
 - RESTful API design with proper error handling
+- Docker support
 
-## Prerequisites
+## Quick Start
 
-- Node.js (v18 or higher)
-- PostgreSQL (v14 or higher)
-- npm or yarn
+### Option 1: Docker (Recommended for Development)
 
-## Installation
+```bash
+npm run docker:up
 
-1. Clone the repository
-2. Install dependencies:
+# Setup database schema and seed data
+npm run db:setup
 
-   ```bash
-   npm install
-   ```
+# Access the API at http://localhost:3000
+```
 
-3. Copy environment configuration:
+### Option 2: Local Development
 
-   ```bash
-   cp .env.example .env
-   ```
+```bash
+# Install dependencies
+npm install
 
-4. Update the `.env` file with your database configuration
+# Copy and configure environment
+cp .env.example .env
+
+# Setup database
+npm run db:setup
+
+# Start development server
+npm run dev
+```
+
+## Documentation
+
+- **[Docker Setup](docker-README.md)** - Complete Docker configuration and usage
+- **[Database Setup](docs/database-setup.md)** - Database configuration, schema, and management
+- **[API Documentation](docs/api-documentation.md)** - Detailed API endpoints with examples
 
 ## Available Scripts
 
-- `npm start` - Start the production server
-- `npm run dev` - Start the development server with nodemon
-- `npm test` - Run tests
+### Development
+
+- `npm start` - Start production server
+- `npm run dev` - Start development server with nodemon
+- `npm test` - Run test suite
 - `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Run tests with coverage report
+- `npm run test:coverage` - Generate coverage report
+
+### Database
+
+- `npm run db:setup` - Setup database schema and seed data
+- `npm run db:test-connection` - Test database connection
+- `npm run db:reset` - Reset database
+- `npm run db:studio` - Open Prisma Studio
+
+### Docker
+
+- `npm run docker:up` - Start development environment
+- `npm run docker:down` - Stop development environment
+- `npm run docker:logs` - View application logs
 
 ## Project Structure
 
@@ -48,7 +76,7 @@ src/
 ├── app.js              # Express application setup
 ├── config/             # Configuration files
 ├── middleware/         # Custom middleware
-├── models/             # Data models
+├── models/             # Data models and validation
 ├── repositories/       # Data access layer
 ├── routes/             # API route definitions
 ├── services/           # Business logic layer
@@ -60,38 +88,38 @@ tests/
 └── setup.js           # Test configuration
 ```
 
-## API Endpoints
+## API Overview
 
-The API includes the following endpoints:
+The API provides endpoints for:
 
-### Books
+- **Books**: CRUD operations for book inventory
+- **Borrowers**: User registration and management
+- **Borrowings**: Checkout/return operations and overdue tracking
+
+For detailed API documentation with examples, check [API Documentation](docs/api-documentation.md).
+
+## Security & Rate Limiting
+
+### Authentication
+
+Some endpoints require Basic Authentication:
 
 - `GET /api/books` - List all books
-- `GET /api/books/:id` - Get book by ID
-- `POST /api/books` - Create new book
-- `PUT /api/books/:id` - Update book
-- `DELETE /api/books/:id` - Delete book
+- `GET /api/books/:id` - Get specific book
 
-### Borrowers
+- **Username**: `admin`
+- **Password**: `admin`
 
-- `GET /api/borrowers` - List all borrowers
-- `GET /api/borrowers/:id` - Get borrower by ID
-- `POST /api/borrowers` - Register new borrower
-- `PUT /api/borrowers/:id` - Update borrower
-- `DELETE /api/borrowers/:id` - Delete borrower
+**Example with Authorization header:**
 
-### Borrowings
+### Rate Limiting
 
-- `POST /api/borrowings/checkout` - Check out a book
-- `PUT /api/borrowings/:id/return` - Return a book
-- `GET /api/borrowers/:id/current-books` - Get borrower's current books
-- `GET /api/borrowings/overdue` - Get overdue books
+The following endpoints are rate-limited to prevent abuse:
 
-## Health Check
-
-The API includes a health check endpoint:
-
-- `GET /health` - Returns API status and timestamp
+- **Rate Limit**: 10 requests per 15 minutes per IP address
+- **Protected Endpoints**:
+  - `GET /api/books`
+  - `GET /api/books/:id`
 
 ## License
 

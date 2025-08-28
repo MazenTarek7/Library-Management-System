@@ -8,7 +8,14 @@
     "dev": "nodemon src/app.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "db:setup": "node src/scripts/setupDatabase.js setup",
+    "db:test-connection": "node src/scripts/setupDatabase.js test-connection",
+    "db:studio": "node src/scripts/setupDatabase.js studio",
+    "db:reset": "node src/scripts/setupDatabase.js reset",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f api"
   },
   "keywords": [
     "library",
@@ -20,19 +27,23 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "pg": "^8.11.3",
-    "joi": "^17.11.0",
-    "winston": "^3.11.0",
+    "@prisma/client": "^6.14.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.0.1",
     "helmet": "^7.1.0",
-    "dotenv": "^16.3.1"
+    "joi": "^17.11.0",
+    "pg": "^8.11.3",
+    "prisma": "^6.14.0",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.8",
+    "@types/pg": "^8.15.5",
     "jest": "^29.7.0",
     "nodemon": "^3.0.1",
-    "supertest": "^6.3.3",
-    "@types/jest": "^29.5.8"
+    "supertest": "^6.3.3"
   },
   "engines": {
     "node": ">=18.0.0"
