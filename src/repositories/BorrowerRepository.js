@@ -37,7 +37,13 @@ class BorrowerRepository {
     } catch (error) {
       if (error.code === "P2002" && error.meta?.target?.includes("email")) {
         logger.warn("Email already exists", { email: borrowerData.email });
-        throw new Error("Email already exists");
+        const customError = new Error(
+          "A borrower with this email already exists"
+        );
+        customError.code = "DUPLICATE_EMAIL";
+        customError.statusCode = 400;
+        customError.isOperational = true;
+        throw customError;
       }
       logger.error("Error creating borrower", {
         error: error.message,
@@ -82,7 +88,13 @@ class BorrowerRepository {
       }
       if (error.code === "P2002" && error.meta?.target?.includes("email")) {
         logger.warn("Email already exists", { email: updateData.email });
-        throw new Error("Email already exists");
+        const customError = new Error(
+          "A borrower with this email already exists"
+        );
+        customError.code = "DUPLICATE_EMAIL";
+        customError.statusCode = 400;
+        customError.isOperational = true;
+        throw customError;
       }
       logger.error("Error updating borrower", {
         error: error.message,

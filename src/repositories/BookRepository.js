@@ -41,12 +41,23 @@ class BookRepository {
       if (error.code === "P2002") {
         // Unique constraint violation
         const field = error.meta?.target?.[0] || "field";
-        throw new Error(`A book with this ${field} already exists`);
+        const customError = new Error(
+          `A book with this ${field} already exists`
+        );
+        customError.code =
+          field === "isbn" ? "DUPLICATE_ISBN" : "DUPLICATE_ENTRY";
+        customError.statusCode = 400;
+        customError.isOperational = true;
+        throw customError;
       }
 
       if (error.code === "P2003") {
         // Foreign key constraint violation
-        throw new Error("Invalid reference data provided");
+        const customError = new Error("Invalid reference data provided");
+        customError.code = "FOREIGN_KEY_CONSTRAINT";
+        customError.statusCode = 400;
+        customError.isOperational = true;
+        throw customError;
       }
 
       throw error;
@@ -90,12 +101,23 @@ class BookRepository {
       if (error.code === "P2002") {
         // Unique constraint violation
         const field = error.meta?.target?.[0] || "field";
-        throw new Error(`A book with this ${field} already exists`);
+        const customError = new Error(
+          `A book with this ${field} already exists`
+        );
+        customError.code =
+          field === "isbn" ? "DUPLICATE_ISBN" : "DUPLICATE_ENTRY";
+        customError.statusCode = 400;
+        customError.isOperational = true;
+        throw customError;
       }
 
       if (error.code === "P2003") {
         // Foreign key constraint violation
-        throw new Error("Invalid reference data provided");
+        const customError = new Error("Invalid reference data provided");
+        customError.code = "FOREIGN_KEY_CONSTRAINT";
+        customError.statusCode = 400;
+        customError.isOperational = true;
+        throw customError;
       }
 
       logger.error("Error updating book", {
