@@ -1,41 +1,4 @@
-const winston = require("winston");
-
-/**
- * Configure Winston logger for error handling
- */
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || "info",
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
-  defaultMeta: { service: "library-management-system" },
-  transports: [
-    new winston.transports.File({
-      filename: "logs/error.log",
-      level: "error",
-      maxsize: 5242880,
-      maxFiles: 5,
-    }),
-    new winston.transports.File({
-      filename: "logs/combined.log",
-      maxsize: 5242880,
-      maxFiles: 5,
-    }),
-  ],
-});
-
-if (process.env.NODE_ENV !== "production") {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-    })
-  );
-}
+const logger = require("../config/logger");
 
 /**
  * Custom error classes for different error types
@@ -101,7 +64,16 @@ class ErrorHandlerMiddleware {
       requestId: req.id || "unknown",
     };
 
-    if (err.name === "ValidationError" || err.code === "VALIDATION_ERROR") {
+    if (err.isOperational && err.code && err.statusCode) {
+      error = {
+        statusCode: err.statusCode,
+        code: err.code,
+        message: err.message,
+      };
+    } else if (
+      err.name === "ValidationError" ||
+      err.code === "VALIDATION_ERROR"
+    ) {
       error = ErrorHandlerMiddleware._handleValidationError(err);
     } else if (
       err.type === "entity.parse.failed" ||
