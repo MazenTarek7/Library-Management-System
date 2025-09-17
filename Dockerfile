@@ -9,7 +9,9 @@ RUN npm install
 
 COPY . .
 
+RUN chmod +x ./scripts/docker-start.sh
+
 # Expose port
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+CMD ["sh", "./scripts/docker-start.sh"]
