@@ -16,7 +16,6 @@ const requestLogger = winston.createLogger({
       maxsize: 5242880,
       maxFiles: 5,
     }),
-    // Also write to combined log
     new winston.transports.File({
       filename: "logs/combined.log",
       maxsize: 5242880,
